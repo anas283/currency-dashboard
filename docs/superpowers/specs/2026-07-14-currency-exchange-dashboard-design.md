@@ -14,8 +14,8 @@
 | Topic | Decision |
 |---|---|
 | Framework | Angular 18 (standalone components, no NgModules). Jasmine/Karma unit, Cypress E2E — per spec, exactly. |
-| Data source | ExchangeRateAPI v6 with a real, free-tier API key (user-provided; injected at build time). |
-| Historical trends | The spec (§1.2) requires "exchange rate trends over the past month." ExchangeRateAPI's timeseries endpoint is paid-only, so the `HistoryService` fetches **real past-month timeseries** from **frankfurter.app** (ECB-sourced, free, no key). Live rates + conversion still come from your ExchangeRateAPI key. Dual-source is permitted — spec §1.1 names ExchangeRateAPI only as an "e.g.". |
+| Data source | **ExchangeRate-API** (`v6.exchangerate-api.com`) — single source for live rates, conversion, and historical data. Uses a **Pro free trial** API key (user-provided; injected at build time) so the Historical endpoint is available. |
+| Historical trends | The spec (§1.2) requires "exchange rate trends over the past month." ExchangeRate-API's Historical endpoint (`GET /v6/{KEY}/history/{BASE}/{YEAR}/{MONTH}/{DAY}`) returns all rates for one date. The `HistoryService` fetches the past 30 calendar days **lazily** (one call per missing date, per base), then caches each date in IndexedDB indefinitely (historical dates never change). Subsequent Trends loads hit the cache, not the network. Aggressive caching is essential because the Pro free-trial quota is limited and 30 calls per cold load is expensive. |
 | Real-time updates | RxJS `timer` polling, default 60 s. No WebSocket (free tier has none). Pauses when document hidden or offline; exponential backoff on errors. |
 | Offline cache | IndexedDB via `idb-keyval` (≈1 KB). App always renders from cache first, then re-fetches. |
 | Charts | Raw **Chart.js v4** wrapped by a thin `ChartComponent`. No ng2-charts. |
@@ -68,33 +68,34 @@ src/
 
 ## 3. Data layer
 
-### ExchangeRateAPI (https://v6.exchangerateapi.com) — live + conversion
+### ExchangeRate-API (https://v6.exchangerate-api.com) — live + conversion + history
+
+Single source. Pro free-trial key unlocks the Historical endpoint.
 
 | Endpoint | Used for | Tier |
 |---|---|---|
-| `GET /v6/{KEY}/latest/{BASE}` | latest rates table | free |
+| `GET /v6/{KEY}/latest/{BASE}` | latest rates table + trend snapshots | free |
 | `GET /v6/{KEY}/pair/{FROM}/{TO}/{AMOUNT}` | one-off conversion (only when currencies missing from cached snapshot) | free |
+| `GET /v6/{KEY}/history/{BASE}/{YEAR}/{MONTH}/{DAY}` | real past-30-day timeseries for the Trends chart | **Pro free trial** |
 
-Historical/timeseries endpoints on ExchangeRateAPI are paid — **not used.**
-
-### frankfurter.app (https://api.frankfurter.app) — history (ECB-sourced, no key)
-
-| Endpoint | Used for |
-|---|---|
-| `GET /{fromDate}..{toDate}?from={BASE}&to={CUR1,CUR2,CUR3}` | real past-month timeseries for the Trends chart |
-| `GET /currencies` | canonical currency code → name + flag mapping |
-
-No API key, CORS-enabled, daily granularity. The Trends view calls this once on selection change; the result is cached in IndexedDB keyed by `{base, currencies, month-range}`.
+Historical endpoint returns all `conversion_rates` (one per supported currency) for the requested date, in terms of `BASE`. The response shape is the same `conversion_rates` object as `latest`, plus `year`/`month`/`day` fields.
 
 ### History fetch (`HistoryService`)
 
-- On Trends load (or selection change), fetch the real past-30-day timeseries from frankfurter for each selected currency against the chosen base.
-- Cache the response in IndexedDB keyed by `{base, currencies:[cur1,cur2,cur3], range: 'YYYY-MM-DD..YYYY-MM-DD'}`; reuse within the day, refetch when the user changes selection or 24 h elapse.
+- On Trends load (or selection/base change), compute the past 30 calendar days (inclusive of today-minus-30 through today).
+- For each date in the range, check the IndexedDB cache key `history::{base}::{YYYY-MM-DD}`. Fetch only the **missing** dates from ExchangeRate-API's Historical endpoint (one HTTP call each). Because the call returns `conversion_rates` for all currencies on that date, we cache the entire response — switching the selected currencies later requires no extra calls.
+- Then filter the cached dates to the user's currently selected ≤3 currencies and assemble the chart series.
+- Cache TTL: **infinite** for past dates (historical data does not change). For today's date, the value is treated as `latest::{base}` and refreshed per the polling engine.
+- This strategy means:
+  - **Cold cache**: ~30 API calls on first Trends view per base.
+  - **Warm cache**: 0 API calls. Switching currencies, switching aggregation, reload — all free.
+  - Switching base triggers a fetch only for that base's cold dates.
 - Aggregation (`Daily` / `Weekly` / `Monthly`) is computed client-side from the cached daily points via `date-buckets` util — no extra network calls.
   - **Daily** → as fetched.
   - **Weekly** → bucket by ISO week-start (Monday), mean of points in the week.
   - **Monthly** → mean across all points in the month (when range spans < 31 days, this is identical to "past month mean").
-- Offline behavior: if frankfurter fetch fails while cache exists, serve cache and show the `badge-negative` offline indicator. If no cache and offline → empty state (no chart) with a "History unavailable offline" message.
+- Offline behavior: if the fetch fails while cache exists, serve cache and show the `badge-negative` offline indicator. If no cache and offline → empty state (no chart) with a "History unavailable offline" message.
+- Rate-limit safety: requests are dispatched sequentially (not in parallel) with a 200 ms gap between calls so we don't burst the Pro free-trial quota. If `error-type: "quota-reached"` is returned, polling stops and the cached partial series renders; a toast tells the user to retry later.
 
 ### Polling engine (`RealtimeService`)
 
@@ -120,7 +121,7 @@ No API key, CORS-enabled, daily granularity. The Trends view calls this once on 
 
 | Condition | Behavior |
 |---|---|
-| HTTP 401/403 (bad key) | Stop polling, show `card-feature-dark` notice in hero: "Demo mode — using cached sample rates. Add a valid ExchangeRateAPI key." Serve cache. |
+| HTTP 401/403 or `invalid-key` / `plan-upgrade-required` | Stop polling, show `card-feature-dark` notice in hero: "Demo mode — using cached sample rates. Add a valid ExchangeRate-API Pro free-trial key to re-enable live + history." Serve cache. The Trends view shows an empty-state when historical cache is empty.
 | HTTP 5xx / network | Backoff poll, serve cache, show `badge-negative` indicator. |
 | Cold cache + offline + no key | Render **seeded sample rates** bundled in the app; labeled "sample data". |
 | Any payload validation error | Treat as network error; serve cache. |
@@ -160,7 +161,7 @@ The dashboard **never** loads to a blank screen.
 
 - Currency picker: chip-style multi-select, max **3** enforced (4th pick disabled with hint "Max 3 reached — remove another to add").
 - **Aggregation toggle** — segmented control: *Daily · Weekly · Monthly*. Weekly buckets to week-start (Mon) mean; Monthly computes month mean of stored series.
-- `ChartComponent` (thin wrapper around a Chart.js `Line` instance): one line per selected currency, x=date, y=rate. Builds from the real past-30-day timeseries returned by frankfurter (cached in IndexedDB).
+- `ChartComponent` (thin wrapper around a Chart.js `Line` instance): one line per selected currency, x=date, y=rate. Builds from the real past-30-day timeseries returned by ExchangeRate-API's Historical endpoint (cached per-date in IndexedDB).
 - Accessibility mirror: real `<table>` (visually hidden via `.sr-only`) representing the chart series for screen readers.
 - Pre-populated target currency when navigated from a table row.
 
@@ -223,7 +224,7 @@ The dashboard **never** loads to a blank screen.
 - Coverage thresholds enforced (Karma coverage karma config): **services ≥ 90 %, components ≥ 80 %, utils/pipes ≥ 95 %, overall ≥ 85 % — build fails below.**
 - Services
   - `RatesService` — success / 401 / 5xx / network → cache fallback.
-  - `HistoryService` — frankfurter fetch success / 5xx / network failure (serve cache → empty-state), range boundary correctness (inclusive end date), selection-change refetch, 24 h cache TTL, daily/weekly/monthly aggregation outputs (week-start = Monday, DST stability).
+  - `HistoryService` — ExchangeRate-API Historical fetch success / 5xx / `quota-reached` / network failure (serve cache → empty-state), 30-day range computation (inclusive of today-minus-30), per-date cache lookup → only missing dates are fetched, cache TTL (past dates infinite, today refreshes via polling engine), selection-change surface (no extra calls needed), aggregation outputs (Daily/Weekly/Monthly, week-start = Monday, DST stability), 200 ms sequential request pacing.
   - `RealtimeService` — timer pause/resume on `document.hidden`, backoff sequence, manual-refresh short-circuit.
   - `CacheService` — stale flag math, schema-version mismatch invalidates old cache.
   - `ThemeService` — persistence + system-preference fallback.
@@ -243,7 +244,7 @@ The dashboard **never** loads to a blank screen.
 ### E2E tests (Cypress)
 
 - `cypress/e2e/`: `rates.cy.ts`, `converter.cy.ts`, `trends.cy.ts`, `theme.cy.ts`, `offline.cy.ts`.
-- **Network stubbed via `cy.intercept`** against ExchangeRateAPI → deterministic fixtures (no flakiness, no key needed, runs offline in CI).
+- **Network stubbed via `cy.intercept`** against `v6.exchangerate-api.com` (latest, pair, and history endpoints) → deterministic fixtures (no flakiness, no key needed, runs offline in CI).
 - Flows covered:
   - Dashboard loads → table populated → search filters → sort toggles → row navigates to Trends.
   - Trends: pick 3 currencies (4th blocked) → toggle aggregation → assert legend / series count.
