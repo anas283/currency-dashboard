@@ -1,0 +1,39 @@
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Misc
+/.angular/cache
+.sass-cache/
+/.nx/cache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local env / secrets
+/src/environments/environment.prod.ts.local
+.env
+*.local
+
+# Coverage / test artifacts
+/coverage
+/cypress/videos
+/cypress/screenshots  
+/cypress/downloads
