@@ -1,0 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap');
+
+body {
+  font-family: var(--font-family-body);
+  font-feature-settings: "calt";
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+}
+
+.display-xl {
+  font: var(--text-display-xl);
+}
+
+.display-md {
+  font: var(--text-display-md);
+}
+
+.display-sm {
+  font: var(--text-display-sm);
+  letter-spacing: var(--text-display-sm-letter-spacing);
+}
+
+.body-md {
+  font: var(--text-body-md);
+}
+
+.body-sm {
+  font: var(--text-body-sm);
+}
+
+.caption {
+  font: var(--text-caption);
+}
+
+.button-md {
+  font: var(--text-button-md);
+}
