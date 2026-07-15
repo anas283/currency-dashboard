@@ -1,6 +1,5 @@
 import { Injectable, OnDestroy, inject, signal, computed } from '@angular/core';
-import { Subject, Subscription, timer } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { Subscription, timer } from 'rxjs';
 
 import { RatesService } from './rates.service';
 import { OnlineService } from './online.service';
@@ -20,103 +19,150 @@ export class RealtimeService implements OnDestroy {
   readonly lastUpdated$ = computed(() => this.rates.lastUpdated());
 
   private baseInterval = this.env?.pollInterval ?? 60_000;
+  private currentInterval = this.baseInterval;
   private failureCount = 0;
   private consecutiveFailures = 0;
   private isPolling = false;
   private pendingRefresh = false;
+  private skipNextTick = false;
 
-  private readonly trigger = new Subject<void>();
-  private readonly resume$ = new Subject<void>();
-  private readonly triggerSubscription: Subscription;
   private timerSubscription?: Subscription;
 
   private readonly onVisibilityChange = (): void => {
-    if (typeof document !== 'undefined' && !document.hidden && this.onlineService.online()) {
-      this.resume$.next();
+    if (this.shouldPause()) {
+      this.pause();
+    } else {
+      this.resume();
     }
   };
 
-  private readonly onOnlineEvent = (): void => {
+  private readonly onOnline = (): void => {
     if (this.onlineService.online()) {
-      this.resume$.next();
+      this.resume();
     }
+  };
+
+  private readonly onOffline = (): void => {
+    this.pause();
   };
 
   constructor() {
-    this.triggerSubscription = this.trigger.subscribe(() => this.onTick());
-
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
     if (typeof window !== 'undefined') {
-      window.addEventListener('online', this.onOnlineEvent);
+      window.addEventListener('online', this.onOnline);
+      window.addEventListener('offline', this.onOffline);
     }
 
-    this.scheduleNext(0);
+    this.resubscribeTimer(false);
   }
 
   ngOnDestroy(): void {
-    this.triggerSubscription.unsubscribe();
     this.timerSubscription?.unsubscribe();
 
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
     if (typeof window !== 'undefined') {
-      window.removeEventListener('online', this.onOnlineEvent);
+      window.removeEventListener('online', this.onOnline);
+      window.removeEventListener('offline', this.onOffline);
     }
   }
 
   refresh(): void {
     this.failureCount = 0;
     this.consecutiveFailures = 0;
-    this.timerSubscription?.unsubscribe();
+    this.currentInterval = this.baseInterval;
+    this.pendingRefresh = false;
+    this.resubscribeTimer(false);
+  }
 
-    if (this.isPolling) {
-      this.pendingRefresh = true;
+  private onTick(): void {
+    if (this.skipNextTick) {
+      this.skipNextTick = false;
       return;
     }
 
-    this.trigger.next();
-  }
-
-  private async onTick(): Promise<void> {
-    if (this.isPolling) {
+    if (this.isPolling || this.shouldPause()) {
+      if (this.shouldPause()) {
+        this.updatePausedStatus();
+      }
       return;
     }
 
     this.isPolling = true;
+    this.status.set('polling');
+
+    this.rates
+      .loadLatest()
+      .then(() => this.handleResult())
+      .catch(() => this.handleFailure('error'))
+      .finally(() => {
+        this.isPolling = false;
+        if (this.pendingRefresh) {
+          this.pendingRefresh = false;
+          this.refresh();
+        }
+      });
+  }
+
+  private handleResult(): void {
+    const ratesStatus = this.rates.status();
+
+    if (ratesStatus === 'live') {
+      this.handleSuccess();
+    } else {
+      this.handleFailure(ratesStatus === 'error' ? 'error' : 'backing-off');
+    }
+  }
+
+  private handleSuccess(): void {
+    this.failureCount = 0;
+    this.consecutiveFailures = 0;
+    this.currentInterval = this.baseInterval;
+    this.status.set('live');
+    this.resubscribeTimer(true);
+  }
+
+  private handleFailure(status: RealtimeStatus): void {
+    this.failureCount++;
+    this.consecutiveFailures++;
+    this.status.set(status);
+
+    if (this.consecutiveFailures >= 5) {
+      this.baseInterval = Math.min(this.baseInterval * 2, 5 * 60 * 1000);
+      this.consecutiveFailures = 0;
+    }
+
+    this.currentInterval = this.computeBackoff();
+    this.resubscribeTimer(true);
+  }
+
+  private computeBackoff(): number {
+    return Math.min(1000 * 2 ** (this.failureCount - 1), 60_000);
+  }
+
+  private resubscribeTimer(skipImmediate: boolean): void {
+    this.timerSubscription?.unsubscribe();
+    this.skipNextTick = skipImmediate;
 
     if (this.shouldPause()) {
       this.updatePausedStatus();
-      this.isPolling = false;
-      await this.waitForResume();
-      this.onTick();
       return;
     }
 
-    try {
-      this.status.set('polling');
-      await this.rates.loadLatest();
-      this.handleResult();
-    } catch {
-      this.failureCount++;
-      this.consecutiveFailures++;
-      this.status.set('error');
+    this.timerSubscription = timer(0, this.currentInterval).subscribe(() => this.onTick());
+  }
 
-      if (this.consecutiveFailures >= 5) {
-        this.baseInterval = Math.min(this.baseInterval * 2, 5 * 60 * 1000);
-        this.consecutiveFailures = 0;
-      }
+  private pause(): void {
+    this.timerSubscription?.unsubscribe();
+    this.updatePausedStatus();
+  }
 
-      this.scheduleNext(this.computeNextDelay());
-    } finally {
-      this.isPolling = false;
-    }
-
-    if (this.pendingRefresh) {
-      this.pendingRefresh = false;
-      this.trigger.next();
+  private resume(): void {
+    if (!this.shouldPause()) {
+      this.resubscribeTimer(false);
     }
   }
 
@@ -125,54 +171,6 @@ export class RealtimeService implements OnDestroy {
   }
 
   private updatePausedStatus(): void {
-    if (!this.onlineService.online()) {
-      this.status.set('offline');
-    } else {
-      this.status.set('paused');
-    }
-  }
-
-  private waitForResume(): Promise<void> {
-    return new Promise((resolve) => {
-      const sub = this.resume$.pipe(take(1)).subscribe(() => {
-        sub.unsubscribe();
-        resolve();
-      });
-    });
-  }
-
-  private handleResult(): void {
-    const ratesStatus = this.rates.status();
-
-    if (ratesStatus === 'live') {
-      this.failureCount = 0;
-      this.consecutiveFailures = 0;
-      this.status.set('live');
-    } else {
-      this.failureCount++;
-      this.consecutiveFailures++;
-      this.status.set(ratesStatus === 'error' ? 'error' : 'backing-off');
-
-      if (this.consecutiveFailures >= 5) {
-        this.baseInterval = Math.min(this.baseInterval * 2, 5 * 60 * 1000);
-        this.consecutiveFailures = 0;
-      }
-    }
-
-    this.scheduleNext(this.computeNextDelay());
-  }
-
-  private computeNextDelay(): number {
-    if (this.failureCount > 0) {
-      return Math.min(1000 * 2 ** (this.failureCount - 1), 60_000);
-    }
-    return this.baseInterval;
-  }
-
-  private scheduleNext(delayMs: number): void {
-    this.timerSubscription?.unsubscribe();
-    this.timerSubscription = timer(delayMs)
-      .pipe(take(1))
-      .subscribe(() => this.trigger.next());
+    this.status.set(!this.onlineService.online() ? 'offline' : 'paused');
   }
 }
