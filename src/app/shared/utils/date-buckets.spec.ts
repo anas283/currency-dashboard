@@ -19,6 +19,26 @@ describe('date-buckets', () => {
       expect(aggregate(input, 'daily')).toEqual(input);
     });
 
+    it('buckets single point to the start of its ISO week', () => {
+      const input = [point(2024, 6, 15, 10)];
+
+      const result = aggregate(input, 'weekly');
+
+      expect(result.length).toBe(1);
+      expect(result[0].date.toISOString()).toBe('2024-06-10T00:00:00.000Z');
+      expect(result[0].value).toBe(10);
+    });
+
+    it('buckets single point to the first of its month', () => {
+      const input = [point(2024, 6, 15, 10)];
+
+      const result = aggregate(input, 'monthly');
+
+      expect(result.length).toBe(1);
+      expect(result[0].date.toISOString()).toBe('2024-06-01T00:00:00.000Z');
+      expect(result[0].value).toBe(10);
+    });
+
     it('passes daily points through sorted by date', () => {
       const input = [point(2024, 6, 15, 1), point(2024, 6, 10, 2), point(2024, 6, 12, 3)];
 
