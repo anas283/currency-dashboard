@@ -153,19 +153,19 @@ README.md
 | 10 | `date-buckets` util | Data |
 | 11 | HistoryService (historical endpoint + per-date cache + aggregation) | Data |
 | 12 | RealtimeService (timer polling + backoff + pause) | Data |
-| 13 | SortPipe | Features |
-| 14 | CurrencyFilterPipe | Features |
-| 15 | SortHeaderDirective | Features |
-| 16 | RatesTable feature (search/sort/filter/base selector) | Features |
-| 17 | ChartComponent (Chart.js wrapper) | Features |
-| 18 | Trends feature (multi-select ≤3, aggregation toggle, sr-only table) | Features |
-| 19 | Converter feature (computed result + swap + pair fallback) | Features |
-| 20 | OfflineIndicator feature | Features |
-| 21 | Home page composition + inter-feature navigation | Features |
-| 22 | Karma coverage thresholds + bundle budget | Quality |
-| 23 | Cypress E2E: rates, converter, theme, offline | Quality |
-| 24 | Cypress E2E: trends | Quality |
-| 25 | GitHub Actions CI/CD pipeline + `.nojekyll` | Quality |
+| 13 | GitHub Actions CI/CD pipeline + `.nojekyll` | Quality |
+| 14 | SortPipe | Features |
+| 15 | CurrencyFilterPipe | Features |
+| 16 | SortHeaderDirective | Features |
+| 17 | RatesTable feature (search/sort/filter/base selector) | Features |
+| 18 | ChartComponent (Chart.js wrapper) | Features |
+| 19 | Trends feature (multi-select ≤3, aggregation toggle, sr-only table) | Features |
+| 20 | Converter feature (computed result + swap + pair fallback) | Features |
+| 21 | OfflineIndicator feature | Features |
+| 22 | Home page composition + inter-feature navigation | Features |
+| 23 | Karma coverage thresholds + bundle budget | Quality |
+| 24 | Cypress E2E: rates, converter, theme, offline | Quality |
+| 25 | Cypress E2E: trends | Quality |
 | 26 | README | Docs |
 
 ---
@@ -1109,7 +1109,7 @@ export const environment = { production: false, apiBase: 'https://v6.exchangerat
 ```ts
 export const environment = { production: true, apiBase: 'https://v6.exchangerate-api.com', apiKey: '___EXCHANGERATE_API_KEY___' };
 ```
-(`___EXCHANGERATE_API_KEY___` placeholder replaced by CI `sed` — Task 25.)
+(`___EXCHANGERATE_API_KEY___` placeholder replaced by CI `sed` — Task 13.)
 
 - [ ] **Step 7: Run — verify pass**
 
@@ -1905,7 +1905,52 @@ git commit -m "feat(core): RealtimeService timer polling + backoff + pause"
 
 ---
 
-## Task 13: SortPipe
+## Task 13: GitHub Actions CI/CD pipeline + `.nojekyll`
+
+**Files:** `.github/workflows/ci.yml`, `.nojekyll` (already present — confirm), `environment.prod.ts` placeholder sed step.
+
+- [ ] **Step 1: Write workflow**
+
+```yaml
+# .github/workflows/ci.yml
+name: ci
+on:
+  push:    { branches: [main] }
+  pull_request: { branches: [main] }
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run e2e
+      - name: Inject prod API key
+        if: github.ref == 'refs/heads/main'
+        run: sed -i "s/___EXCHANGERATE_API_KEY___/${{ secrets.EXCHANGERATE_API_KEY }}/g" src/environments/environment.prod.ts
+      - run: npm run build -- --configuration production
+      - uses: actions/upload-artifact@v4
+        with: { name: dist, path: dist/currency-dashboard }
+      - name: Deploy to gh-pages
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist/currency-dashboard
+```
+
+- [ ] **Step 2: Lint YAML** — `yq . .github/workflows/ci.yml > /dev/null` (or `npx --yes -- yaml-lint ...`).
+- [ ] **Step 3: Confirm `.nojekyll` is at repo root** and copied to `dist/currency-dashboard/.nojekyll` by Angular build (add to `angular.json` `assets` if missing).
+- [ ] **Step 4: Local simulate** — `act -j build` if `act` installed (optional).
+- [ ] **Step 5: Commit** — `ci: add lint→test→e2e→build→deploy pipeline`
+
+---
+
+## Task 14: SortPipe
 
 **Files:** `src/app/shared/pipes/sort.pipe.ts` + `.spec.ts`
 
@@ -1962,7 +2007,7 @@ export class SortPipe implements PipeTransform {
 
 ---
 
-## Task 14: CurrencyFilterPipe
+## Task 15: CurrencyFilterPipe
 
 **Files:** `src/app/shared/pipes/currency-filter.pipe.ts` + `.spec.ts`
 
@@ -2023,7 +2068,7 @@ export class CurrencyFilterPipe implements PipeTransform {
 
 ---
 
-## Task 15: SortHeaderDirective
+## Task 16: SortHeaderDirective
 
 **Files:** `src/app/shared/directives/sort-header.directive.ts` + `.spec.ts`
 
@@ -2098,7 +2143,7 @@ export class SortHeaderDirective {
 
 ---
 
-## Task 16: RatesTable feature
+## Task 17: RatesTable feature
 
 **Files:** `src/app/features/rates-table/rates-table.component.{ts,html,scss,spec.ts}`
 
@@ -2189,7 +2234,7 @@ export class RatesTableComponent {
 
 ---
 
-## Task 17: ChartComponent (Chart.js wrapper)
+## Task 18: ChartComponent (Chart.js wrapper)
 
 **Files:** `src/app/shared/components/chart/chart.component.{ts,spec.ts}`
 
@@ -2267,7 +2312,7 @@ export class ChartComponent implements OnDestroy {
 
 ---
 
-## Task 18: Trends feature (multi-select ≤3, aggregation toggle, sr-only table)
+## Task 19: Trends feature (multi-select ≤3, aggregation toggle, sr-only table)
 
 **Files:** `src/app/features/trends/trends.component.{ts,html,scss,spec.ts}`
 
@@ -2323,7 +2368,7 @@ describe('TrendsComponent', () => {
 
 ---
 
-## Task 19: Converter feature (computed result + swap + pair fallback)
+## Task 20: Converter feature (computed result + swap + pair fallback)
 
 **Files:** `src/app/features/converter/converter.component.{ts,html,scss,spec.ts}`
 
@@ -2374,7 +2419,7 @@ describe('ConverterComponent', () => {
 
 ---
 
-## Task 20: OfflineIndicator feature
+## Task 21: OfflineIndicator feature
 
 **Files:** `src/app/features/offline-indicator/offline-indicator.component.{ts,spec.ts}`
 
@@ -2415,7 +2460,7 @@ describe('OfflineIndicatorComponent', () => {
 
 ---
 
-## Task 21: Home page composition + inter-feature navigation
+## Task 22: Home page composition + inter-feature navigation
 
 **Files:** Modify `src/app/home.component.ts` (replace stub), `src/app/app.routes.ts` (lazy `/rates`, `/trends`, `/converter`), `src/main.ts` bootstrap appConfig, `src/app/app.component.ts` to start realtime engine in `ngOnInit` using `RealtimeService`.
 
@@ -2444,7 +2489,7 @@ describe('routes', () => {
 
 ---
 
-## Task 22: Karma coverage thresholds + bundle budget
+## Task 23: Karma coverage thresholds + bundle budget
 
 **Files:** Modify `karma.conf.js` (add `coverage` thresholds), `angular.json` budgets (already added Task 1 — confirm), `package.json` `test` flag.
 
@@ -2472,7 +2517,7 @@ Bonus: per-dir overrides via `watermarks`. Per-spec thresholds implemented throu
 
 ---
 
-## Task 23: Cypress E2E — rates, converter, theme, offline
+## Task 24: Cypress E2E — rates, converter, theme, offline
 
 **Files:** `cypress.config.ts`, `cypress/e2e/{rates,converter,theme,offline}.cy.ts`, `cypress/fixtures/{latest-usd,pair-eur-gbp,history-usd-2026-06-15}.json`.
 
@@ -2487,7 +2532,7 @@ Bonus: per-dir overrides via `watermarks`. Per-spec thresholds implemented throu
 
 ---
 
-## Task 24: Cypress E2E — trends
+## Task 25: Cypress E2E — trends
 
 **Files:** `cypress/e2e/trends.cy.ts`, fixtures `history-usd-*.json` (one stubbed fixture reused for every date via regex intercept).
 
@@ -2498,57 +2543,12 @@ Bonus: per-dir overrides via `watermarks`. Per-spec thresholds implemented throu
 
 ---
 
-## Task 25: GitHub Actions CI/CD pipeline + `.nojekyll`
-
-**Files:** `.github/workflows/ci.yml`, `.nojekyll` (already present — confirm), `environment.prod.ts` placeholder sed step.
-
-- [ ] **Step 1: Write workflow**
-
-```yaml
-# .github/workflows/ci.yml
-name: ci
-on:
-  push:    { branches: [main] }
-  pull_request: { branches: [main] }
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm test
-      - run: npm run e2e
-      - name: Inject prod API key
-        if: github.ref == 'refs/heads/main'
-        run: sed -i "s/___EXCHANGERATE_API_KEY___/${{ secrets.EXCHANGERATE_API_KEY }}/g" src/environments/environment.prod.ts
-      - run: npm run build -- --configuration production
-      - uses: actions/upload-artifact@v4
-        with: { name: dist, path: dist/currency-dashboard }
-      - name: Deploy to gh-pages
-        if: github.ref == 'refs/heads/main'
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist/currency-dashboard
-```
-
-- [ ] **Step 2: Lint YAML** — `yq . .github/workflows/ci.yml > /dev/null` (or `npx --yes -- yaml-lint ...`).
-- [ ] **Step 3: Confirm `.nojekyll` is at repo root** and copied to `dist/currency-dashboard/.nojekyll` by Angular build (add to `angular.json` `assets` if missing).
-- [ ] **Step 4: Local simulate** — `act -j build` if `act` installed (optional).
-- [ ] **Step 5: Commit** — `ci: add lint→test→e2e→build→deploy pipeline`
-
----
-
 ## Task 26: README
 
 **Files:** `README.md` (root).
 
 - [ ] **Step 1: Draft sections per design spec §7** — overview + staging URL, run-locally, API key instructions, architecture overview, architecture decisions, folder map, testing + coverage gates, CI/CD.
-- [ ] **Step 2: Paste in** each section's content (no placeholders; `<live-URL>` becomes the actual `https://<owner>.github.io/currency-dashboard` once Task 25 runs).
+- [ ] **Step 2: Paste in** each section's content (no placeholders; `<live-URL>` becomes the actual `https://<owner>.github.io/currency-dashboard` once Task 13 runs).
 - [ ] **Step 3: Verify markdown** — `npx --yes markdownlint-cli2 README.md` (zero errors; warnings acceptable).
 - [ ] **Step 4: Commit** — `docs: README with setup, architecture, testing, CI/CD`
 
@@ -2557,11 +2557,11 @@ jobs:
 ## Self-Review (writing-plans checklist)
 
 **Spec coverage** (every line of `spec.md` ↔ task):
-- §1.1 sortable table → Task 16. §1.2 trends ≤3 / aggregation / dynamic chart → Tasks 11/17/18.
-- §1.3 converter → Task 19. §1.4 filtering + search → Tasks 13/14/16.
+- §1.1 sortable table → Task 17. §1.2 trends ≤3 / aggregation / dynamic chart → Tasks 11/18/19.
+- §1.3 converter → Task 19. §1.4 filtering + search → Tasks 14/15/17.
 - §2.1 realtime updates → Task 12. §2.2 offline (IndexedDB) → Tasks 7/9/20. §2.3 theming → Tasks 2/3.
-- §3.1 modular → Tasks 4–5 structure. §3.2 Jasmine/Karma + Cypress → Tasks 22–24 + specs in every service/component task.
-- §3.3 CI/CD lint→test→build→deploy → Task 25. §3.4 README → Task 26. ✓ no gaps.
+- §3.1 modular → Tasks 4–5 structure. §3.2 Jasmine/Karma + Cypress → Tasks 23–25 + specs in every service/component task.
+- §3.3 CI/CD lint→test→build→deploy → Task 13. §3.4 README → Task 26. ✓ no gaps.
 
 **Placeholder scan** — searched for `TBD`, `TODO`, `implement later`, `add error handling`, `write tests for`; none remain in prose. Inline notes like "Implementer: pick one; keep spec green" are bounded decisions, not gaps.
 
