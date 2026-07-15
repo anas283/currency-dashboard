@@ -1,0 +1,31 @@
+.text-input {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  &__label {
+    margin-bottom: var(--sp-xs);
+    font: var(--text-body-sm-strong);
+    color: var(--color-ink);
+  }
+
+  &__field {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--color-ink);
+    border-radius: var(--rd-md);
+    padding: var(--sp-md) var(--sp-lg);
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font: var(--text-body-md);
+
+    &::placeholder {
+      color: var(--color-mute);
+    }
+
+    &:focus {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+  }
+}

@@ -1,0 +1,10 @@
+.footer {
+  background-color: var(--color-ink);
+  color: var(--color-canvas-soft);
+  padding: var(--sp-3xl) var(--sp-xl);
+
+  &__copy {
+    margin: 0;
+    font: var(--text-body-sm);
+  }
+}

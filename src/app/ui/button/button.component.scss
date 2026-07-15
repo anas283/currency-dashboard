@@ -1,0 +1,37 @@
+:host {
+  display: inline-flex;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-sm);
+  border: 0;
+  border-radius: var(--rd-xl);
+  padding: var(--sp-md) var(--sp-xl);
+  font: var(--text-button-md);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+
+  &--primary {
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+  }
+
+  &--secondary {
+    background-color: var(--color-canvas-soft);
+    color: var(--color-ink);
+  }
+
+  &--tertiary {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    border: 1px solid var(--color-ink);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
