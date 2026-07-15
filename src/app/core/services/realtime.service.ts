@@ -71,6 +71,13 @@ export class RealtimeService implements OnDestroy {
   }
 
   refresh(): void {
+    // If a poll is already running, queue one immediate poll so the refresh
+    // is not lost. The current tick's finally handler will re-invoke refresh.
+    if (this.isPolling) {
+      this.pendingRefresh = true;
+      return;
+    }
+
     this.failureCount = 0;
     this.consecutiveFailures = 0;
     this.currentInterval = this.baseInterval;
