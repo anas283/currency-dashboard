@@ -3,7 +3,7 @@
 - **Date:** 2026-07-14
 - **Source spec:** `spec.md` (Tranglo Front End Project Assessment)
 - **Visual system:** `DESIGN.md` (Wise-inspired token set)
-- **Stack:** Angular 18 (standalone) + Jasmine/Karma + Cypress
+- **Stack:** Angular 22.0.6 (standalone) + Jasmine/Karma + Cypress
 - **Deploy target:** GitHub Pages
 - **Build order:** Core → Quality → Advanced
 
@@ -13,7 +13,7 @@
 
 | Topic | Decision |
 |---|---|
-| Framework | Angular 18 (standalone components, no NgModules). Jasmine/Karma unit, Cypress E2E — per spec, exactly. |
+| Framework | Angular 22.0.6 (standalone components, no NgModules). Jasmine/Karma unit, Cypress E2E — per spec, exactly. |
 | Data source | **ExchangeRate-API** (`v6.exchangerate-api.com`) — single source for live rates, conversion, and historical data. Uses a **Pro free trial** API key (user-provided; injected at build time) so the Historical endpoint is available. |
 | Historical trends | The spec (§1.2) requires "exchange rate trends over the past month." ExchangeRate-API's Historical endpoint (`GET /v6/{KEY}/history/{BASE}/{YEAR}/{MONTH}/{DAY}`) returns all rates for one date. The `HistoryService` fetches the past 30 calendar days **lazily** (one call per missing date, per base), then caches each date in IndexedDB indefinitely (historical dates never change). Subsequent Trends loads hit the cache, not the network. Aggressive caching is essential because the Pro free-trial quota is limited and 30 calls per cold load is expensive. |
 | Real-time updates | RxJS `timer` polling, default 60 s. No WebSocket (free tier has none). Pauses when document hidden or offline; exponential backoff on errors. |
