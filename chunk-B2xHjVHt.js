@@ -1,0 +1,1 @@
+import {s as sg,f as fu,Z as Zg,p as pu}from'./main-Z7WZBUAY.js';var p=class t{static \u0275fac=function(e){return new(e||t)};static \u0275cmp=sg({type:t,selectors:[["app-converter"]],decls:2,vars:0,template:function(e,s){e&1&&(fu(0,"p"),Zg(1,"Converter placeholder"),pu());},styles:["[_nghost-%COMP%]{display:block;padding:1rem}"]})};export{p as ConverterComponent};
