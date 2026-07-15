@@ -6,6 +6,29 @@ describe('ThemeService', () => {
   let service: ThemeService;
   let storage: Record<string, string | null>;
   let matchMediaCalls: { query: string; matches: boolean }[];
+  let originalLocalStorage: Storage;
+  let originalMatchMedia: ((query: string) => MediaQueryList) | undefined;
+
+  beforeAll(() => {
+    originalLocalStorage = globalThis.localStorage;
+    originalMatchMedia = globalThis.matchMedia;
+  });
+
+  afterAll(() => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      value: originalLocalStorage,
+      configurable: true,
+    });
+
+    if (originalMatchMedia) {
+      Object.defineProperty(globalThis, 'matchMedia', {
+        value: originalMatchMedia,
+        configurable: true,
+      });
+    } else {
+      delete (globalThis as { matchMedia?: unknown }).matchMedia;
+    }
+  });
 
   const setupMocks = (options: {
     storedTheme?: string | null;
