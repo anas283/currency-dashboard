@@ -23,25 +23,21 @@ function startOfIsoWeek(date: Date): Date {
   return monday;
 }
 
-function bucketKey(date: Date, aggregation: Aggregation): number {
+function bucketKey(date: Date, aggregation: 'weekly' | 'monthly'): number {
   switch (aggregation) {
     case 'weekly':
       return startOfIsoWeek(date).getTime();
     case 'monthly':
       return startOfMonth(date).getTime();
-    default:
-      return date.getTime();
   }
 }
 
-function bucketDate(date: Date, aggregation: Aggregation): Date {
+function bucketDate(date: Date, aggregation: 'weekly' | 'monthly'): Date {
   switch (aggregation) {
     case 'weekly':
       return startOfIsoWeek(date);
     case 'monthly':
       return startOfMonth(date);
-    default:
-      return new Date(date.getTime());
   }
 }
 
