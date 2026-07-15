@@ -1,0 +1,13 @@
+<div class="text-input">
+  @if (label()) {
+    <label class="text-input__label" [for]="inputId">{{ label() }}</label>
+  }
+  <input
+    class="text-input__field"
+    [id]="inputId"
+    [type]="type()"
+    [placeholder]="placeholder()"
+    [value]="value()"
+    (input)="onInput($event)"
+  />
+</div>

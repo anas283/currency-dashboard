@@ -1,0 +1,9 @@
+<button
+  class="btn"
+  [attr.type]="type()"
+  [class.btn--primary]="variant() === 'primary'"
+  [class.btn--secondary]="variant() === 'secondary'"
+  [class.btn--tertiary]="variant() === 'tertiary'"
+>
+  <ng-content></ng-content>
+</button>

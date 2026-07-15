@@ -1,0 +1,9 @@
+<div
+  class="card"
+  [class.card--content]="variant() === 'content'"
+  [class.card--feature-sage]="variant() === 'feature-sage'"
+  [class.card--feature-green]="variant() === 'feature-green'"
+  [class.card--feature-dark]="variant() === 'feature-dark'"
+>
+  <ng-content></ng-content>
+</div>

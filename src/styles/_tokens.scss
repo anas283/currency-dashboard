@@ -1,0 +1,74 @@
+:root {
+  // Brand & accent
+  --color-primary: #9fe870;
+  --color-on-primary: #0e0f0c;
+  --color-primary-active: #cdffad;
+  --color-primary-neutral: #c5edab;
+  --color-primary-pale: #e2f6d5;
+
+  // Surfaces & text
+  --color-ink: #0e0f0c;
+  --color-ink-deep: #163300;
+  --color-body: #454745;
+  --color-mute: #868685;
+  --color-canvas: #ffffff;
+  --color-canvas-soft: #e8ebe6;
+
+  // Semantic
+  --color-positive: #2ead4b;
+  --color-positive-deep: #054d28;
+  --color-warning: #ffd11a;
+  --color-warning-deep: #b86700;
+  --color-warning-content: #4a3b1c;
+  --color-negative: #d03238;
+  --color-negative-deep: #a72027;
+  --color-negative-darkest: #a7000d;
+  --color-negative-bg: #320707;
+
+  // Tertiary accents
+  --color-accent-orange: #ffc091;
+  --color-accent-cyan: #38c8ff;
+
+  // Spacing
+  --sp-xxs: 2px;
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 12px;
+  --sp-lg: 16px;
+  --sp-xl: 24px;
+  --sp-2xl: 32px;
+  --sp-3xl: 48px;
+
+  // Radius
+  --rd-sm: 8px;
+  --rd-md: 12px;
+  --rd-lg: 16px;
+  --rd-xl: 24px;
+  --rd-pill: 9999px;
+  --rd-full: 9999px;
+
+  // Typography families
+  --font-family-display: "Inter", system-ui, sans-serif;
+  --font-family-body: "Inter", system-ui, sans-serif;
+
+  // Display scale
+  --text-display-mega: 900 126px / 107.1px var(--font-family-display);
+  --text-display-xxl: 900 96px / 81.6px var(--font-family-display);
+  --text-display-xl: 900 64px / 54.4px var(--font-family-display);
+  --text-display-lg: 400 47px / 70.5px var(--font-family-display);
+  --text-display-lg-letter-spacing: -0.108px;
+  --text-display-md: 900 40px / 34px var(--font-family-display);
+  --text-display-sm: 600 32px / 38.4px var(--font-family-body);
+  --text-display-sm-letter-spacing: -0.96px;
+  --text-display-xs: 600 24px / 31.2px var(--font-family-body);
+  --text-display-xs-letter-spacing: -0.48px;
+
+  // Body scale
+  --text-body-lg: 400 20px / 30px var(--font-family-body);
+  --text-body-md: 400 16px / 24px var(--font-family-body);
+  --text-body-md-strong: 600 16px / 24px var(--font-family-body);
+  --text-body-sm: 400 14px / 20px var(--font-family-body);
+  --text-body-sm-strong: 600 14px / 20px var(--font-family-body);
+  --text-caption: 400 12px / 16px var(--font-family-body);
+  --text-button-md: 600 16px / 24px var(--font-family-body);
+}

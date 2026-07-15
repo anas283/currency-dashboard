@@ -1,0 +1,18 @@
+<header class="nav-bar">
+  <div class="nav-bar__brand">CurrencyDashboard</div>
+
+  <nav class="nav-bar__nav" aria-label="Main">
+    @for (link of links(); track link.label) {
+      <a class="nav-bar__link" [href]="link.href">{{ link.label }}</a>
+    }
+  </nav>
+
+  <button
+    class="nav-bar__toggle"
+    type="button"
+    (click)="themeService.toggle()"
+    aria-label="Toggle theme"
+  >
+    {{ themeService.theme() === 'dark' ? 'Light' : 'Dark' }}
+  </button>
+</header>

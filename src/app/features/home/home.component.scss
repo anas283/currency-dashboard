@@ -1,0 +1,23 @@
+:host {
+  display: block;
+}
+
+.home__sections {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 48rem) {
+  .home__sections {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 64rem) {
+  .home__sections {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

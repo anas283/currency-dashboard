@@ -1,0 +1,17 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--rd-pill);
+  padding: var(--sp-xs) var(--sp-md);
+  font: var(--text-body-sm-strong);
+
+  &--positive {
+    background-color: var(--color-primary-pale);
+    color: var(--color-positive-deep);
+  }
+
+  &--negative {
+    background-color: var(--color-negative-bg);
+    color: var(--color-on-primary);
+  }
+}

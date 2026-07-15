@@ -1,0 +1,12 @@
+<section
+  class="hero-band"
+  [class.hero-band--default]="variant() === 'default'"
+  [class.hero-band--dark]="variant() === 'dark'"
+>
+  <div class="hero-band__container">
+    <h1 class="hero-band__headline">{{ headline() }}</h1>
+    @if (subheadline()) {
+      <p class="hero-band__subheadline">{{ subheadline() }}</p>
+    }
+  </div>
+</section>
