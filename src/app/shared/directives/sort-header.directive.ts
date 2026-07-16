@@ -121,6 +121,10 @@ export class SortHeaderDirective implements OnInit, OnDestroy {
       active ? ariaSortValue(direction) : 'none',
     );
 
-    this.indicator.textContent = active && direction !== 'none' ? (direction === 'asc' ? '▲' : '▼') : '';
+    this.renderer.setProperty(
+      this.indicator,
+      'textContent',
+      active && direction !== 'none' ? (direction === 'asc' ? '▲' : '▼') : '',
+    );
   }
 }

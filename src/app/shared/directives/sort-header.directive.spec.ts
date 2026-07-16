@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { SortChange, SortHeaderDirective } from './sort-header.directive';
@@ -23,6 +23,7 @@ import { SortDirection } from '../pipes/sort.pipe';
   `,
   standalone: true,
   imports: [SortHeaderDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 class TestHostComponent {
   @ViewChild(SortHeaderDirective, { static: true }) directive!: SortHeaderDirective;
