@@ -1,0 +1,99 @@
+<app-card variant="content">
+  <div class="rates-table__controls">
+    <app-text-input
+      class="rates-table__search"
+      label="Search currencies"
+      placeholder="e.g. EUR or Euro"
+      [value]="search()"
+      (valueChange)="search.set($event)"
+    />
+
+    <div class="rates-table__base">
+      <label class="rates-table__label" for="base-select">Base</label>
+      <select
+        class="rates-table__select"
+        id="base-select"
+        [value]="ratesService.base()"
+        (change)="onBaseChange($event)"
+      >
+        @for (code of baseOptions(); track code) {
+          <option [value]="code">{{ code }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="rates-table__toggle">
+      <app-button
+        [variant]="showAll() ? 'secondary' : 'primary'"
+        (click)="showAll.set(false)"
+      >
+        Top 30
+      </app-button>
+      <app-button
+        [variant]="showAll() ? 'primary' : 'secondary'"
+        (click)="showAll.set(true)"
+      >
+        All
+      </app-button>
+    </div>
+  </div>
+
+  @let displayedRows = rows() | currencyFilter: search() | sort: sortKey() : sortDirection();
+
+  @if (displayedRows.length === 0) {
+    <p class="rates-table__empty">No currencies match your search.</p>
+  } @else {
+    <table class="rates-table__table">
+      <thead>
+        <tr>
+          <th
+            appSortHeader
+            sortKey="code"
+            [activeKey]="sortKey()"
+            [direction]="sortDirection()"
+            (sortChange)="onSortChange($event)"
+          >
+            Currency
+          </th>
+          <th
+            appSortHeader
+            sortKey="rate"
+            [activeKey]="sortKey()"
+            [direction]="sortDirection()"
+            (sortChange)="onSortChange($event)"
+          >
+            Rate
+          </th>
+          <th
+            class="rates-table__base-col"
+            appSortHeader
+            sortKey="base"
+            [activeKey]="sortKey()"
+            [direction]="sortDirection()"
+            (sortChange)="onSortChange($event)"
+          >
+            Base
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of displayedRows; track row.code) {
+          <tr
+            class="rates-table__row"
+            tabindex="0"
+            (click)="onRowClick(row.code)"
+            (keydown.enter)="onRowClick(row.code)"
+          >
+            <td>
+              <span class="rates-table__flag">{{ row.flag }}</span>
+              <span class="rates-table__code">{{ row.code }}</span>
+              <span class="rates-table__name">{{ row.name }}</span>
+            </td>
+            <td>{{ row.rate | number: '1.0-6' }}</td>
+            <td class="rates-table__base-col">{{ row.base }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</app-card>
