@@ -1,148 +1,237 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
+import {
+  ComponentFixture,
+  discardPeriodicTasks,
+  fakeAsync,
+  TestBed,
+  tick,
+} from '@angular/core/testing';
+import { signal, WritableSignal } from '@angular/core';
 
 import { OfflineIndicatorComponent } from './offline-indicator.component';
-import { RealtimeService } from '../../core/services/realtime.service';
+import {
+  RealtimeService,
+  RealtimeStatus,
+} from '../../core/services/realtime.service';
 import { RatesService } from '../../core/services/rates.service';
+import { LatestResponse } from '../../core/models/api.types';
 
-function createRealtimeServiceMock(): RealtimeService {
-  return {
-    status: signal('live'),
-    lastUpdated$: signal<number | null>(null),
-  } as unknown as RealtimeService;
+type RealtimeServiceShape = Pick<
+  RealtimeService,
+  'status' | 'lastUpdated$' | 'refresh' | 'ngOnDestroy'
+>;
+
+type RatesServiceShape = Pick<
+  RatesService,
+  'snapshot' | 'base' | 'servedFromCache' | 'status' | 'loadLatest' | 'convert'
+>;
+
+class RealtimeServiceStub implements RealtimeServiceShape {
+  readonly status: WritableSignal<RealtimeStatus> = signal('live');
+  readonly lastUpdated$: WritableSignal<number | null> = signal(null);
+
+  refresh = jasmine.createSpy('refresh');
+  ngOnDestroy = jasmine.createSpy('ngOnDestroy');
 }
 
-function createRatesServiceMock(): RatesService {
-  return {
-    status: signal<'live' | 'stale' | 'offline' | 'error'>('live'),
-    servedFromCache: signal(false),
-  } as unknown as RatesService;
+class RatesServiceStub implements RatesServiceShape {
+  readonly snapshot = signal<LatestResponse | null>(null);
+  readonly base = signal('USD');
+  readonly servedFromCache = signal(false);
+  readonly status = signal<'live' | 'stale' | 'offline' | 'error'>('live');
+
+  loadLatest = jasmine.createSpy('loadLatest').and.resolveTo();
+  convert = jasmine.createSpy('convert').and.resolveTo(null);
 }
 
 describe('OfflineIndicatorComponent', () => {
   let fixture: ComponentFixture<OfflineIndicatorComponent>;
-  let realtimeService: RealtimeService;
-  let ratesService: RatesService;
+  let realtimeService: RealtimeServiceStub;
+  let ratesService: RatesServiceStub;
 
-  async function setup(): Promise<void> {
+  beforeEach(() => {
     TestBed.resetTestingModule();
 
-    realtimeService = createRealtimeServiceMock();
-    ratesService = createRatesServiceMock();
-
-    await TestBed.configureTestingModule({
+    TestBed.configureTestingModule({
       imports: [OfflineIndicatorComponent],
       providers: [
-        { provide: RealtimeService, useValue: realtimeService },
-        { provide: RatesService, useValue: ratesService },
+        { provide: RealtimeService, useClass: RealtimeServiceStub },
+        { provide: RatesService, useClass: RatesServiceStub },
       ],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(OfflineIndicatorComponent);
-  }
+    });
+  });
 
   afterEach(() => {
     fixture?.destroy();
     TestBed.resetTestingModule();
   });
 
-  async function flush(): Promise<void> {
-    fixture.detectChanges();
-    await fixture.whenStable();
+  function createFixture(): void {
+    fixture = TestBed.createComponent(OfflineIndicatorComponent);
+    realtimeService = TestBed.inject(
+      RealtimeService
+    ) as unknown as RealtimeServiceStub;
+    ratesService = TestBed.inject(RatesService) as unknown as RatesServiceStub;
+  }
+
+  function detectChanges(): void {
     fixture.detectChanges();
   }
 
   function getBadgeText(): string {
-    return (fixture.nativeElement.querySelector('.badge') as HTMLElement)?.textContent ?? '';
+    return (
+      (fixture.nativeElement.querySelector('.badge') as HTMLElement)
+        ?.textContent ?? ''
+    );
   }
 
-  it('should create', async () => {
-    await setup();
-    await flush();
+  it('should create', fakeAsync(() => {
+    createFixture();
+    detectChanges();
+    tick(0);
+
     expect(fixture.componentInstance).toBeTruthy();
-  });
 
-  it('should render "Live" when rates are live and no timestamp is available', async () => {
-    await setup();
+    discardPeriodicTasks();
+  }));
+
+  it('should render "Live" when rates are live and no timestamp is available', fakeAsync(() => {
+    createFixture();
     ratesService.status.set('live');
-    (realtimeService.lastUpdated$ as ReturnType<typeof signal<number | null>>).set(null);
+    realtimeService.lastUpdated$.set(null);
 
-    await flush();
+    detectChanges();
+    tick(0);
 
     expect(getBadgeText()).toBe('Live');
-  });
 
-  it('should render "Live · updated Xs ago" when rates are live', async () => {
-    await setup();
+    discardPeriodicTasks();
+  }));
+
+  it('should render "Live · updated Xs ago" when rates are live', fakeAsync(() => {
     const nowSeconds = Math.floor(Date.now() / 1000);
+    createFixture();
     ratesService.status.set('live');
-    (realtimeService.lastUpdated$ as ReturnType<typeof signal<number | null>>).set(nowSeconds - 30);
+    realtimeService.lastUpdated$.set(nowSeconds - 30);
 
-    await flush();
+    detectChanges();
+    tick(0);
 
     expect(getBadgeText()).toContain('Live · updated');
     expect(getBadgeText()).toContain('s ago');
-  });
 
-  it('should render "Cached" when rates are stale and no timestamp is available', async () => {
-    await setup();
+    discardPeriodicTasks();
+  }));
+
+  it('should refresh the "Xs ago" text as time passes', fakeAsync(() => {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    createFixture();
+    ratesService.status.set('live');
+    realtimeService.lastUpdated$.set(nowSeconds - 30);
+
+    detectChanges();
+    tick(0);
+
+    const firstMatch = getBadgeText().match(/updated (\d+)s ago/);
+    expect(firstMatch).toBeTruthy();
+    const firstSeconds = Number(firstMatch![1]);
+
+    tick(1000);
+    detectChanges();
+
+    const secondMatch = getBadgeText().match(/updated (\d+)s ago/);
+    expect(secondMatch).toBeTruthy();
+    expect(Number(secondMatch![1])).toBe(firstSeconds + 1);
+
+    discardPeriodicTasks();
+  }));
+
+  it('should render "Cached" when rates are stale and no timestamp is available', fakeAsync(() => {
+    createFixture();
     ratesService.status.set('stale');
-    (realtimeService.lastUpdated$ as ReturnType<typeof signal<number | null>>).set(null);
+    realtimeService.lastUpdated$.set(null);
 
-    await flush();
+    detectChanges();
+    tick(0);
 
     expect(getBadgeText()).toBe('Cached');
-  });
 
-  it('should render "Cached · fetched Xm ago" when rates are stale', async () => {
-    await setup();
+    discardPeriodicTasks();
+  }));
+
+  it('should render "Cached · fetched Xm ago" when rates are stale', fakeAsync(() => {
     const nowSeconds = Math.floor(Date.now() / 1000);
+    createFixture();
     ratesService.status.set('stale');
-    (realtimeService.lastUpdated$ as ReturnType<typeof signal<number | null>>).set(nowSeconds - 120);
+    realtimeService.lastUpdated$.set(nowSeconds - 120);
 
-    await flush();
+    detectChanges();
+    tick(0);
 
     expect(getBadgeText()).toContain('Cached · fetched');
     expect(getBadgeText()).toContain('m ago');
-  });
 
-  it('should render "Offline — showing cached data" when offline', async () => {
-    await setup();
+    discardPeriodicTasks();
+  }));
+
+  it('should render "Offline — showing cached data" when offline', fakeAsync(() => {
+    createFixture();
     ratesService.status.set('offline');
 
-    await flush();
+    detectChanges();
+    tick(0);
 
     expect(getBadgeText()).toBe('Offline — showing cached data');
-  });
 
-  it('should render "Error — using cached data" when in error state', async () => {
-    await setup();
+    discardPeriodicTasks();
+  }));
+
+  it('should render "Error — using cached data" when in error state', fakeAsync(() => {
+    createFixture();
     ratesService.status.set('error');
 
-    await flush();
+    detectChanges();
+    tick(0);
 
     expect(getBadgeText()).toBe('Error — using cached data');
-  });
 
-  it('should use the positive badge variant for live and stale states', async () => {
-    await setup();
+    discardPeriodicTasks();
+  }));
+
+  it('should use the positive badge variant for live and stale states', fakeAsync(() => {
+    createFixture();
     ratesService.status.set('live');
-    await flush();
-    expect(fixture.nativeElement.querySelector('.badge')).toHaveClass('badge--positive');
+    detectChanges();
+    tick(0);
+    expect(
+      fixture.nativeElement.querySelector('.badge')
+    ).toHaveClass('badge--positive');
 
     ratesService.status.set('stale');
-    await flush();
-    expect(fixture.nativeElement.querySelector('.badge')).toHaveClass('badge--positive');
-  });
+    detectChanges();
+    tick(0);
+    expect(
+      fixture.nativeElement.querySelector('.badge')
+    ).toHaveClass('badge--positive');
 
-  it('should use the negative badge variant for offline and error states', async () => {
-    await setup();
+    discardPeriodicTasks();
+  }));
+
+  it('should use the negative badge variant for offline and error states', fakeAsync(() => {
+    createFixture();
     ratesService.status.set('offline');
-    await flush();
-    expect(fixture.nativeElement.querySelector('.badge')).toHaveClass('badge--negative');
+    detectChanges();
+    tick(0);
+    expect(
+      fixture.nativeElement.querySelector('.badge')
+    ).toHaveClass('badge--negative');
 
     ratesService.status.set('error');
-    await flush();
-    expect(fixture.nativeElement.querySelector('.badge')).toHaveClass('badge--negative');
-  });
+    detectChanges();
+    tick(0);
+    expect(
+      fixture.nativeElement.querySelector('.badge')
+    ).toHaveClass('badge--negative');
+
+    discardPeriodicTasks();
+  }));
 });
