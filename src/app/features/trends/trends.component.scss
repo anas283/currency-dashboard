@@ -1,0 +1,71 @@
+:host {
+  display: block;
+}
+
+.trends {
+  &__title {
+    margin: 0 0 var(--sp-lg);
+    font: var(--text-heading-md);
+  }
+
+  &__section {
+    margin-bottom: var(--sp-lg);
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: var(--sp-xs);
+    font: var(--text-body-sm-strong);
+    color: var(--color-ink);
+  }
+
+  &__base {
+    font: var(--text-body-md-strong);
+  }
+
+  &__toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-sm);
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-sm);
+  }
+
+  &__flag {
+    margin-right: var(--sp-xs);
+  }
+
+  &__hint {
+    margin: var(--sp-sm) 0 0;
+    font: var(--text-body-sm);
+    color: var(--color-mute);
+  }
+
+  &__chart {
+    height: 20rem;
+    margin-top: var(--sp-lg);
+  }
+
+  &__empty {
+    margin: var(--sp-xl) 0;
+    color: var(--color-mute);
+    font: var(--text-body-md);
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
