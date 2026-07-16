@@ -1,5 +1,6 @@
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { NavBarComponent } from './nav-bar.component';
 import { ThemeService } from '../../core/services/theme.service';
@@ -16,7 +17,10 @@ describe('NavBarComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [NavBarComponent],
-      providers: [{ provide: ThemeService, useValue: themeService }],
+      providers: [
+        provideRouter([]),
+        { provide: ThemeService, useValue: themeService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(NavBarComponent);
@@ -32,6 +36,20 @@ describe('NavBarComponent', () => {
     expect(compiled.textContent).toContain('Rates');
     expect(compiled.textContent).toContain('Trends');
     expect(compiled.textContent).toContain('Converter');
+  });
+
+  it('should link to the correct routes', () => {
+    fixture.detectChanges();
+
+    const links = fixture.nativeElement.querySelectorAll(
+      'a.nav-bar__link'
+    ) as NodeListOf<HTMLAnchorElement>;
+    const expectedPaths = ['/', '/rates', '/trends', '/converter'];
+
+    expect(links.length).toBe(expectedPaths.length);
+    links.forEach((link, index) => {
+      expect(link.getAttribute('href')).toBe(expectedPaths[index]);
+    });
   });
 
   it('should call themeService.toggle when theme toggle button is clicked', () => {
