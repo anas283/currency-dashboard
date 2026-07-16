@@ -1,0 +1,29 @@
+<div class="chart-wrapper">
+  <canvas
+    #chartCanvas
+    role="img"
+    aria-label="Line chart showing currency trend data"
+  ></canvas>
+
+  <table class="visually-hidden">
+    <caption>Currency trend data table</caption>
+    <thead>
+      <tr>
+        <th scope="col">Dataset</th>
+        @for (label of labels(); track $index) {
+          <th scope="col">{{ label }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (dataset of datasets(); track $index) {
+        <tr>
+          <th scope="row">{{ dataset.label }}</th>
+          @for (value of dataset.data; track $index) {
+            <td>{{ value }}</td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

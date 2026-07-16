@@ -9,7 +9,7 @@ import { aggregate, Aggregation, DataPoint } from '../../shared/utils/date-bucke
 
 export interface HistorySeriesPoint {
   date: string;
-  values: Record<string, number>;
+  values: Partial<Record<string, number>>;
 }
 
 function isApiError(response: HistoryResponse | ApiError): response is ApiError {

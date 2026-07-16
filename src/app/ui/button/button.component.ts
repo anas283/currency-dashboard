@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
 
@@ -13,4 +13,5 @@ export type ButtonVariant = 'primary' | 'secondary' | 'tertiary';
 export class ButtonComponent {
   readonly variant = input<ButtonVariant>('primary');
   readonly type = input<'button' | 'submit'>('button');
+  readonly disabled = input<boolean, string | boolean>(false, { transform: booleanAttribute });
 }

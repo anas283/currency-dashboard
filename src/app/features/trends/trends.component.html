@@ -1,0 +1,74 @@
+<app-card variant="content">
+  <h1 class="trends__title">Trends</h1>
+
+  <div class="trends__section">
+    <span class="trends__label">Base currency</span>
+    <span class="trends__base">{{ ratesService.base() }}</span>
+  </div>
+
+  <div class="trends__section">
+    <span class="trends__label">Aggregation</span>
+    <div class="trends__toggle">
+      @for (option of aggregationOptions; track option) {
+        <app-button
+          [attr.data-testid]="'aggregation-' + option"
+          [variant]="aggregation() === option ? 'primary' : 'secondary'"
+          (click)="setAggregation(option)"
+        >
+          {{ aggregationLabels[option] }}
+        </app-button>
+      }
+    </div>
+  </div>
+
+  <div class="trends__section">
+    <span class="trends__label">Currencies</span>
+    <div class="trends__chips">
+      @for (currency of currencyOptions; track currency.code) {
+        <app-button
+          class="trends__chip"
+          [attr.data-testid]="'currency-' + currency.code"
+          [variant]="isSelected(currency.code) ? 'primary' : 'secondary'"
+          [disabled]="!isSelected(currency.code) && atMax()"
+          (click)="toggleCurrency(currency.code)"
+        >
+          <span class="trends__flag">{{ currency.flag }}</span>
+          <span>{{ currency.code }}</span>
+        </app-button>
+      }
+    </div>
+    @if (atMax()) {
+      <p class="trends__hint">You can compare up to {{ maxSelection }} currencies.</p>
+    }
+  </div>
+
+  @if (selected().length > 0) {
+    <div class="trends__chart">
+      <app-chart [labels]="chartLabels()" [datasets]="chartDatasets()" />
+    </div>
+
+    <table class="visually-hidden">
+      <caption>Currency trend data for base {{ ratesService.base() }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">Currency</th>
+          @for (label of chartLabels(); track label) {
+            <th scope="col">{{ label }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (code of selected(); track code) {
+          <tr>
+            <th scope="row">{{ code }}</th>
+            @for (point of historyService.series(); track point.date) {
+              <td>{{ point.values[code] ?? '' }}</td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <p class="trends__empty">Select a currency to view trends.</p>
+  }
+</app-card>

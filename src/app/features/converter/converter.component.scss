@@ -1,0 +1,48 @@
+.converter {
+  &__row {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: var(--sp-md);
+  }
+
+  &__amount {
+    flex: 1 1 8rem;
+    min-width: 6rem;
+  }
+
+  &__field {
+    display: flex;
+    flex: 1 1 10rem;
+    flex-direction: column;
+    gap: var(--sp-xs);
+    min-width: 8rem;
+  }
+
+  &__label {
+    color: var(--color-ink-soft);
+    font: var(--text-body-sm);
+  }
+
+  &__select {
+    width: 100%;
+    padding: var(--sp-sm);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font: var(--text-body-md);
+  }
+
+  &__swap {
+    flex: 0 0 auto;
+  }
+
+  &__result {
+    margin-top: var(--sp-lg);
+  }
+
+  &__value {
+    font: var(--text-display-md);
+  }
+}

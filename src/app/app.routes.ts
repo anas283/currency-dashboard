@@ -7,7 +7,7 @@ export const routes: Routes = [
   {
     path: 'rates',
     loadComponent: () =>
-      import('./features/rates/rates-table.component').then((m) => m.RatesTableComponent),
+      import('./features/rates-table/rates-table.component').then((m) => m.RatesTableComponent),
   },
   {
     path: 'trends',
