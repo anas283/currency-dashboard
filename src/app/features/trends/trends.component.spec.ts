@@ -143,8 +143,8 @@ describe('TrendsComponent', () => {
     const stubChart = fixture.debugElement.query(By.directive(StubChartComponent)).componentInstance as StubChartComponent;
     expect(stubChart.labels()).toEqual(['2024-01-01', '2024-01-02']);
     expect(stubChart.datasets()).toEqual([
-      { label: 'EUR', data: [0.9, 0.91], borderColor: '#2563eb' },
-      { label: 'GBP', data: [0.8, 0.81], borderColor: '#dc2626' },
+      { label: 'EUR', data: [0.9, 0.91], borderColor: '#2ead4b' },
+      { label: 'GBP', data: [0.8, 0.81], borderColor: '#38c8ff' },
     ]);
   });
 

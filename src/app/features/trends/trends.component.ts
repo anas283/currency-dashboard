@@ -19,7 +19,8 @@ import { ButtonComponent } from '../../ui/button/button.component';
 import { CardComponent } from '../../ui/card/card.component';
 
 const MAX_SELECTION = 3;
-const TREND_COLORS = ['#2563eb', '#dc2626', '#16a34a'];
+// Brand token colors from _tokens.scss / DESIGN.md for chart line differentiation.
+const TREND_COLORS = ['#2ead4b', '#38c8ff', '#d03238'];
 const VALID_CODES = new Set(CURATED_TOP_30.map((currency) => currency.code));
 const AGGREGATION_OPTIONS: Aggregation[] = ['daily', 'weekly', 'monthly'];
 const AGGREGATION_LABELS: Record<Aggregation, string> = {
