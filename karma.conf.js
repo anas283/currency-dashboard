@@ -1,6 +1,9 @@
 // Karma configuration for Angular 22 unit tests with coverage thresholds.
 const path = require('path');
 
+const COVERAGE_DIR = path.join(__dirname, 'coverage', 'currency-dashboard');
+const COVERAGE_SUBDIR = '.';
+
 /**
  * Aggregate category coverage reporter.
  *
@@ -16,8 +19,6 @@ function CategoryCoverageReporter() {
   const { createCoverageMap, createCoverageSummary } = require('istanbul-lib-coverage');
   const { minimatch } = require('minimatch');
 
-  const coverageFile = path.join(__dirname, 'coverage', 'currency-dashboard', 'coverage-final.json');
-
   const metrics = ['statements', 'branches', 'functions', 'lines'];
   const thresholds = {
     services: 90,
@@ -32,6 +33,10 @@ function CategoryCoverageReporter() {
     utilsPipes: '**/src/app/shared/{utils,pipes}/**/*.ts',
   };
 
+  // Derive the JSON coverage output path from the same source of truth as the
+  // Karma config (the constants below are reused in coverageReporter.dir/subdir).
+  const coverageFile = path.join(COVERAGE_DIR, COVERAGE_SUBDIR, 'coverage-final.json');
+
   function readCoverageFile() {
     try {
       return fs.readFileSync(coverageFile, 'utf8');
@@ -40,18 +45,25 @@ function CategoryCoverageReporter() {
     }
   }
 
-  let waitAttempts = 0;
   function checkCoverage(done) {
-    const raw = readCoverageFile();
+    let raw = readCoverageFile();
     if (!raw) {
-      // Wait for karma-coverage to finish writing the JSON report.
-      if (++waitAttempts > 50) {
-        console.error('Category coverage reporter: coverage-final.json not found');
-        return done(1);
-      }
-      return setTimeout(() => checkCoverage(done), 100);
+      // karma-coverage writes the JSON report during onExit in parallel with
+      // other reporters. A single short retry is enough in practice.
+      return setTimeout(() => {
+        raw = readCoverageFile();
+        if (!raw) {
+          console.error(`Category coverage reporter: coverage-final.json not found at ${coverageFile}`);
+          return done(1);
+        }
+        evaluateCoverage(raw, done);
+      }, 300);
     }
 
+    evaluateCoverage(raw, done);
+  }
+
+  function evaluateCoverage(raw, done) {
     let coverageMap;
     try {
       coverageMap = createCoverageMap(JSON.parse(raw));
@@ -115,8 +127,8 @@ module.exports = function (config) {
       suppressAll: true,
     },
     coverageReporter: {
-      dir: path.join(__dirname, 'coverage', 'currency-dashboard'),
-      subdir: '.',
+      dir: COVERAGE_DIR,
+      subdir: COVERAGE_SUBDIR,
       reporters: [
         { type: 'html' },
         { type: 'text-summary' },
@@ -132,7 +144,7 @@ module.exports = function (config) {
       },
     },
     reporters: ['progress', 'kjhtml', 'coverage', 'category'],
-    browsers: ['ChromeHeadless'],
+    browsers: ['ChromeHeadlessNoSandbox'],
     customLaunchers: {
       ChromeHeadlessNoSandbox: {
         base: 'ChromeHeadless',
