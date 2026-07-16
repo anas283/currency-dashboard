@@ -9,13 +9,12 @@ const COVERAGE_SUBDIR = '.';
  *
  * karma-coverage only supports global and per-file thresholds natively.  The
  * requirement here is to enforce *aggregate* coverage per category (services,
- * components, utils/pipes) using glob patterns.  This reporter runs after the
- * test suite completes, reads the JSON coverage map written by karma-coverage,
- * computes summaries for each category, and fails the build when a threshold is
- * not met.
+ * components, utils/pipes) using glob patterns.  This reporter listens for
+ * karma-coverage's in-memory `coverage_complete` event, accumulates per-browser
+ * coverage, computes summaries for each category, and fails the build when a
+ * threshold is not met.
  */
-function CategoryCoverageReporter() {
-  const fs = require('fs');
+function CategoryCoverageReporter(emitter) {
   const { createCoverageMap, createCoverageSummary } = require('istanbul-lib-coverage');
   const { minimatch } = require('minimatch');
 
@@ -33,48 +32,29 @@ function CategoryCoverageReporter() {
     utilsPipes: '**/src/app/shared/{utils,pipes}/**/*.ts',
   };
 
-  // Derive the JSON coverage output path from the same source of truth as the
-  // Karma config (the constants below are reused in coverageReporter.dir/subdir).
-  const coverageFile = path.join(COVERAGE_DIR, COVERAGE_SUBDIR, 'coverage-final.json');
+  this.coverageData = {};
+  this.coverageReceived = false;
+  let resolveCoveragePromise;
+  const coveragePromise = new Promise((resolve) => {
+    resolveCoveragePromise = resolve;
+  });
 
-  function readCoverageFile() {
-    try {
-      return fs.readFileSync(coverageFile, 'utf8');
-    } catch {
-      return null;
+  emitter.on('coverage_complete', (browser, data) => {
+    Object.assign(this.coverageData, data);
+    if (!this.coverageReceived) {
+      this.coverageReceived = true;
+      resolveCoveragePromise();
     }
-  }
+  });
 
-  function checkCoverage(done) {
-    const maxAttempts = 30;
-    const intervalMs = 100;
-    let attempt = 0;
-
-    function tryRead() {
-      attempt += 1;
-      const raw = readCoverageFile();
-      if (raw) {
-        return evaluateCoverage(raw, done);
-      }
-      if (attempt >= maxAttempts) {
-        console.error(`Category coverage reporter: coverage-final.json not found at ${coverageFile}`);
-        return done(1);
-      }
-      setTimeout(tryRead, intervalMs);
-    }
-
-    tryRead();
-  }
-
-  function evaluateCoverage(raw, done) {
-    let coverageMap;
-    try {
-      coverageMap = createCoverageMap(JSON.parse(raw));
-    } catch (err) {
-      console.error('Category coverage reporter: failed to parse coverage-final.json', err);
+  function evaluateCoverage(done) {
+    const filePaths = Object.keys(this.coverageData);
+    if (filePaths.length === 0) {
+      console.error('Category coverage reporter: no coverage data received; coverage may be disabled or no in-memory reporter configured');
       return done(1);
     }
 
+    const coverageMap = createCoverageMap(this.coverageData);
     const files = coverageMap.files();
     let failed = false;
 
@@ -110,8 +90,19 @@ function CategoryCoverageReporter() {
     done(failed ? 1 : 0);
   }
 
-  this.onExit = function (done) {
-    checkCoverage(done);
+  this.onExit = async function (done) {
+    const timeoutMs = 5000;
+    try {
+      await Promise.race([
+        coveragePromise,
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs))
+      ]);
+    } catch {
+      console.error('Category coverage reporter: no coverage data received; coverage may be disabled or no in-memory reporter configured');
+      return done(1);
+    }
+
+    evaluateCoverage.call(this, done);
   };
 }
 
@@ -124,7 +115,7 @@ module.exports = function (config) {
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
-      { 'reporter:category': ['type', CategoryCoverageReporter] },
+      { 'reporter:category': ['factory', function (emitter) { return new CategoryCoverageReporter(emitter); }] },
     ],
     jasmineHtmlReporter: {
       suppressAll: true,
@@ -136,6 +127,7 @@ module.exports = function (config) {
         { type: 'html' },
         { type: 'text-summary' },
         { type: 'json' },
+        { type: 'in-memory' },
       ],
       check: {
         global: {
