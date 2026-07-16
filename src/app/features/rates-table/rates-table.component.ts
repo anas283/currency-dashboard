@@ -33,7 +33,7 @@ interface RateRow extends Currency {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RatesTableComponent {
-  private readonly ratesService = inject(RatesService);
+  readonly ratesService = inject(RatesService);
   private readonly router = inject(Router);
 
   readonly search = signal('');
