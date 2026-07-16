@@ -293,4 +293,35 @@ describe('RatesService', () => {
     httpTestingController.expectNone('https://api.example.com/test-key/pair/USD/EUR/100');
     expect(result).toBeNull();
   });
+
+  it('should report lastUpdated from cache timestamp when snapshot has none', () => {
+    const service = createService();
+
+    expect(service.lastUpdated()).toBeNull();
+  });
+
+  it('should fall back to sample data and no pair conversion when ENV_TOKEN is not provided', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CacheService, useValue: cacheSpy },
+      ],
+    });
+    httpTestingController = TestBed.inject(HttpTestingController);
+
+    const service = TestBed.inject(RatesService);
+    cacheSpy.get.and.resolveTo({ value: null, stale: true, fetchedAt: null });
+
+    await service.loadLatest();
+
+    httpTestingController.expectNone(() => true);
+    expect(service.snapshot()).not.toBeNull();
+    expect(service.status()).toBe('offline');
+
+    const converted = await service.convert(100, 'XYZ', 'EUR');
+    expect(converted).toBeNull();
+    httpTestingController.expectNone('https://api.example.com/test-key/pair/XYZ/EUR/100');
+  });
 });

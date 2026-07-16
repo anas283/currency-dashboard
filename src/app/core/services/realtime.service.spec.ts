@@ -327,4 +327,62 @@ describe('RealtimeService', () => {
 
     discardPeriodicTasks();
   }));
+
+  it('should use default poll interval when ENV_TOKEN is not provided', fakeAsync(() => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RatesService, useValue: ratesService },
+        { provide: OnlineService, useValue: onlineService },
+      ],
+    });
+    service = TestBed.inject(RealtimeService);
+
+    tick(0);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
+
+    discardPeriodicTasks();
+  }));
+
+  it('should pause on visibilitychange when document is hidden', fakeAsync(() => {
+    spyOnProperty(document, 'hidden', 'get').and.returnValue(true);
+    service = createService();
+
+    tick(0);
+    expect(service.status()).toBe('paused');
+
+    document.dispatchEvent(new Event('visibilitychange'));
+    tick(0);
+    expect(service.status()).toBe('paused');
+  }));
+
+  it('should skip tick when a poll is already in flight', fakeAsync(() => {
+    ratesService.loadLatest.and.returnValue(new Promise<void>(() => {}));
+    service = createService();
+
+    tick(0);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
+    expect(service.status()).toBe('polling');
+
+    tick(env.pollInterval);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
+    expect(service.status()).toBe('polling');
+
+    service.ngOnDestroy();
+    discardPeriodicTasks();
+  }));
+
+  it('should pause on tick when the browser goes offline', fakeAsync(() => {
+    service = createService();
+
+    tick(0);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
+
+    onlineService.online.set(false);
+    tick(env.pollInterval);
+
+    expect(service.status()).toBe('offline');
+
+    discardPeriodicTasks();
+  }));
 });

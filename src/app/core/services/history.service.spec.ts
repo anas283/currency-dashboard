@@ -314,4 +314,67 @@ describe('HistoryService', () => {
       expect(Object.keys(point.values)).toEqual(['EUR', 'JPY']);
     }
   });
+
+  it('should skip dates where a selected currency is missing from the response', async () => {
+    freezeDate('2024-06-15T00:00:00Z');
+
+    const service = createService();
+    const dates = getExpectedDateStrings();
+
+    cacheSpy.get.and.callFake(<T>(key: string): Promise<{ value: T | null; stale: boolean; fetchedAt: number | null }> => {
+      const parsed = parseDateKey(key);
+      if (parsed?.base === 'USD') {
+        const rates: Record<string, number> = parsed.date === dates[0] ? { EUR: 0.9 } : { GBP: 0.8 };
+        return Promise.resolve({
+          value: createHistoryResponse(parsed.date, rates) as T | null,
+          stale: false,
+          fetchedAt: Date.now(),
+        });
+      }
+      return Promise.resolve({ value: null as T | null, stale: true, fetchedAt: null });
+    });
+
+    await service.loadHistory('USD', ['EUR', 'GBP'], 'daily');
+
+    httpTestingController.verify();
+
+    const result = service.series();
+    expect(result.length).toBe(dates.length);
+    expect(result[0].values).toEqual({ EUR: 0.9 });
+    for (let i = 1; i < result.length; i++) {
+      expect(result[i].values).toEqual({ GBP: 0.8 });
+    }
+  });
+
+  it('should use cached dates only when ENV_TOKEN is not provided', async () => {
+    freezeDate('2024-06-15T00:00:00Z');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CacheService, useValue: cacheSpy },
+      ],
+    });
+    httpTestingController = TestBed.inject(HttpTestingController);
+
+    const service = TestBed.inject(HistoryService);
+
+    cacheSpy.get.and.callFake(<T>(key: string): Promise<{ value: T | null; stale: boolean; fetchedAt: number | null }> => {
+      const parsed = parseDateKey(key);
+      if (parsed?.base === 'USD') {
+        return Promise.resolve({
+          value: createHistoryResponse(parsed.date, { EUR: 0.9 }) as T | null,
+          stale: false,
+          fetchedAt: Date.now(),
+        });
+      }
+      return Promise.resolve({ value: null as T | null, stale: true, fetchedAt: null });
+    });
+
+    await service.loadHistory('USD', ['EUR'], 'daily');
+
+    httpTestingController.expectNone(() => true);
+    expect(service.series().length).toBeGreaterThan(0);
+  });
 });
