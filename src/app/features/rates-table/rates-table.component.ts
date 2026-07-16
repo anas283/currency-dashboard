@@ -5,8 +5,7 @@ import { Router } from '@angular/router';
 import { Currency, CURATED_TOP_30 } from '../../core/models/currency';
 import { RatesService } from '../../core/services/rates.service';
 import { SortChange, SortHeaderDirective } from '../../shared/directives/sort-header.directive';
-import { CurrencyFilterPipe } from '../../shared/pipes/currency-filter.pipe';
-import { SortDirection, SortPipe } from '../../shared/pipes/sort.pipe';
+import { SortDirection } from '../../shared/pipes/sort.pipe';
 import { ButtonComponent } from '../../ui/button/button.component';
 import { CardComponent } from '../../ui/card/card.component';
 import { TextInputComponent } from '../../ui/text-input/text-input.component';
@@ -22,10 +21,8 @@ interface RateRow extends Currency {
   imports: [
     ButtonComponent,
     CardComponent,
-    CurrencyFilterPipe,
     DecimalPipe,
     SortHeaderDirective,
-    SortPipe,
     TextInputComponent,
   ],
   templateUrl: './rates-table.component.html',
@@ -74,6 +71,48 @@ export class RatesTableComponent {
           base,
         };
       });
+  });
+
+  readonly filteredRows = computed(() => {
+    const query = this.search().trim().toLowerCase();
+    const rows = this.rows();
+
+    if (!query) {
+      return rows;
+    }
+
+    return rows.filter(
+      (row) =>
+        row.code.toLowerCase().includes(query) ||
+        row.name.toLowerCase().includes(query),
+    );
+  });
+
+  readonly displayedRows = computed(() => {
+    const key = this.sortKey();
+    const direction = this.sortDirection();
+    const rows = this.filteredRows();
+
+    if (direction === 'none' || rows.length < 2) {
+      return rows;
+    }
+
+    const sorted = [...rows].sort((a, b) => {
+      const aValue = a[key as keyof RateRow];
+      const bValue = b[key as keyof RateRow];
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return aValue - bValue;
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return aValue.localeCompare(bValue);
+      }
+
+      return String(aValue).localeCompare(String(bValue));
+    });
+
+    return direction === 'desc' ? sorted.reverse() : sorted;
   });
 
   onSortChange(change: SortChange): void {

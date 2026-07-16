@@ -39,7 +39,7 @@ const AGGREGATION_LABELS: Record<Aggregation, string> = {
 })
 export class TrendsComponent implements OnInit {
   readonly ratesService = inject(RatesService);
-  private readonly historyService = inject(HistoryService);
+  readonly historyService = inject(HistoryService);
   private readonly route = inject(ActivatedRoute);
 
   readonly aggregation = signal<Aggregation>('daily');
