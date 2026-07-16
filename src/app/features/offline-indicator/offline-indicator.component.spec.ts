@@ -108,10 +108,10 @@ describe('OfflineIndicatorComponent', () => {
   }));
 
   it('should render "Live · updated Xs ago" when rates are live', fakeAsync(() => {
-    const nowSeconds = Math.floor(Date.now() / 1000);
+    const now = Date.now();
     createFixture();
     ratesService.status.set('live');
-    realtimeService.lastUpdated$.set(nowSeconds - 30);
+    realtimeService.lastUpdated$.set(now - 30_000);
 
     detectChanges();
     tick(0);
@@ -122,11 +122,11 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
-  it('should refresh the "Xs ago" text as time passes', fakeAsync(() => {
-    const nowSeconds = Math.floor(Date.now() / 1000);
+  it('should refresh the "Xs ago" text every second when live', fakeAsync(() => {
+    const now = Date.now();
     createFixture();
     ratesService.status.set('live');
-    realtimeService.lastUpdated$.set(nowSeconds - 30);
+    realtimeService.lastUpdated$.set(now - 30_000);
 
     detectChanges();
     tick(0);
@@ -145,6 +145,29 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
+  it('should refresh the "Xm ago" text every minute when stale', fakeAsync(() => {
+    const now = Date.now();
+    createFixture();
+    ratesService.status.set('stale');
+    realtimeService.lastUpdated$.set(now - 120_000);
+
+    detectChanges();
+    tick(0);
+
+    const firstMatch = getBadgeText().match(/fetched (\d+)m ago/);
+    expect(firstMatch).toBeTruthy();
+    const firstMinutes = Number(firstMatch![1]);
+
+    tick(60_000);
+    detectChanges();
+
+    const secondMatch = getBadgeText().match(/fetched (\d+)m ago/);
+    expect(secondMatch).toBeTruthy();
+    expect(Number(secondMatch![1])).toBe(firstMinutes + 1);
+
+    discardPeriodicTasks();
+  }));
+
   it('should render "Cached" when rates are stale and no timestamp is available', fakeAsync(() => {
     createFixture();
     ratesService.status.set('stale');
@@ -159,10 +182,10 @@ describe('OfflineIndicatorComponent', () => {
   }));
 
   it('should render "Cached · fetched Xm ago" when rates are stale', fakeAsync(() => {
-    const nowSeconds = Math.floor(Date.now() / 1000);
+    const now = Date.now();
     createFixture();
     ratesService.status.set('stale');
-    realtimeService.lastUpdated$.set(nowSeconds - 120);
+    realtimeService.lastUpdated$.set(now - 120_000);
 
     detectChanges();
     tick(0);

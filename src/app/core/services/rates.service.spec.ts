@@ -112,7 +112,7 @@ describe('RatesService', () => {
     expect(service.snapshot()).toEqual(response);
     expect(service.status()).toBe('live');
     expect(service.servedFromCache()).toBeFalse();
-    expect(service.lastUpdated()).toBe(1_000);
+    expect(service.lastUpdated()).toBe(1_000_000);
     expect(cacheSpy.set).toHaveBeenCalledWith('latest::USD', response);
   });
 

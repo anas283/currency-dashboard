@@ -2,28 +2,22 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
+  signal,
 } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { map, timer } from 'rxjs';
 
 import { RealtimeService } from '../../core/services/realtime.service';
 import { RatesService } from '../../core/services/rates.service';
 import { BadgeComponent, BadgeVariant } from '../../ui/badge/badge.component';
 
-const TIMESTAMP_MS_THRESHOLD = 1_000_000_000_000;
-const REFRESH_INTERVAL_MS = 1_000;
-
-function toMs(timestamp: number): number {
-  return timestamp > TIMESTAMP_MS_THRESHOLD ? timestamp : timestamp * 1000;
-}
-
 function formatSecondsAgo(timestamp: number, now: number): number {
-  return Math.max(0, Math.floor((now - toMs(timestamp)) / 1000));
+  return Math.max(0, Math.floor((now - timestamp) / 1000));
 }
 
 function formatMinutesAgo(timestamp: number, now: number): number {
-  return Math.max(0, Math.floor((now - toMs(timestamp)) / 60_000));
+  return Math.max(0, Math.floor((now - timestamp) / 60_000));
 }
 
 @Component({
@@ -38,13 +32,21 @@ export class OfflineIndicatorComponent {
   readonly realtimeService = inject(RealtimeService);
   readonly ratesService = inject(RatesService);
 
-  private readonly baseNow = Date.now();
-  private readonly now = toSignal(
-    timer(0, REFRESH_INTERVAL_MS).pipe(
-      map((tickCount) => this.baseNow + tickCount * REFRESH_INTERVAL_MS)
-    ),
-    { initialValue: this.baseNow }
-  );
+  private readonly now = signal(Date.now());
+
+  constructor() {
+    effect((onCleanup) => {
+      const status = this.ratesService.status();
+      const interval = status === 'live' ? 1000 : 60_000;
+      const base = Date.now();
+
+      const subscription = timer(0, interval)
+        .pipe(map((tickCount) => base + tickCount * interval))
+        .subscribe((value) => this.now.set(value));
+
+      onCleanup(() => subscription.unsubscribe());
+    });
+  }
 
   readonly variant = computed<BadgeVariant>(() => {
     const current = this.ratesService.status();

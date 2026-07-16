@@ -25,7 +25,8 @@ export class RatesService {
     if (this.servedFromCache()) {
       return this.cacheFetchedAt;
     }
-    return this.snapshot()?.time_last_update_unix ?? this.cacheFetchedAt;
+    const unix = this.snapshot()?.time_last_update_unix;
+    return unix != null ? unix * 1000 : null;
   });
 
   async loadLatest(): Promise<void> {

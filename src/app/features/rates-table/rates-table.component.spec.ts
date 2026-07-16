@@ -18,7 +18,11 @@ function createRatesServiceMock(
     base,
     servedFromCache: signal(false),
     status: signal('live'),
-    lastUpdated: computed(() => snapshotValue?.time_last_update_unix ?? null),
+    lastUpdated: computed(() =>
+      snapshotValue?.time_last_update_unix != null
+        ? snapshotValue.time_last_update_unix * 1000
+        : null,
+    ),
     loadLatest: jasmine.createSpy('loadLatest'),
     convert: jasmine.createSpy('convert'),
   } as unknown as RatesService;
