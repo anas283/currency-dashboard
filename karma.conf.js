@@ -46,21 +46,24 @@ function CategoryCoverageReporter() {
   }
 
   function checkCoverage(done) {
-    let raw = readCoverageFile();
-    if (!raw) {
-      // karma-coverage writes the JSON report during onExit in parallel with
-      // other reporters. A single short retry is enough in practice.
-      return setTimeout(() => {
-        raw = readCoverageFile();
-        if (!raw) {
-          console.error(`Category coverage reporter: coverage-final.json not found at ${coverageFile}`);
-          return done(1);
-        }
-        evaluateCoverage(raw, done);
-      }, 300);
+    const maxAttempts = 30;
+    const intervalMs = 100;
+    let attempt = 0;
+
+    function tryRead() {
+      attempt += 1;
+      const raw = readCoverageFile();
+      if (raw) {
+        return evaluateCoverage(raw, done);
+      }
+      if (attempt >= maxAttempts) {
+        console.error(`Category coverage reporter: coverage-final.json not found at ${coverageFile}`);
+        return done(1);
+      }
+      setTimeout(tryRead, intervalMs);
     }
 
-    evaluateCoverage(raw, done);
+    tryRead();
   }
 
   function evaluateCoverage(raw, done) {

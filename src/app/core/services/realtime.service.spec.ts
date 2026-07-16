@@ -357,7 +357,7 @@ describe('RealtimeService', () => {
   }));
 
   it('should skip tick when a poll is already in flight', fakeAsync(() => {
-    ratesService.loadLatest.and.returnValue(new Promise<void>(() => {}));
+    ratesService.loadLatest.and.returnValue(new Promise<void>(() => undefined));
     service = createService();
 
     tick(0);
