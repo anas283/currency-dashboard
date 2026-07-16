@@ -8,5 +8,8 @@
     @if (subheadline()) {
       <p class="hero-band__subheadline">{{ subheadline() }}</p>
     }
+    <div class="hero-band__content">
+      <ng-content></ng-content>
+    </div>
   </div>
 </section>

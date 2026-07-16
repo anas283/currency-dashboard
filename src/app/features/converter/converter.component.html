@@ -1,0 +1,66 @@
+<app-card variant="content">
+  <div class="converter">
+    <div class="converter__row">
+      <app-text-input
+        class="converter__amount"
+        label="Amount"
+        type="number"
+        [value]="amount() + ''"
+        (valueChange)="onAmountChange($event)"
+      />
+
+      <div class="converter__field">
+        <label class="converter__label" for="converter-from">From</label>
+        <select
+          class="converter__select"
+          id="converter-from"
+          [value]="from()"
+          (change)="onFromChange($event)"
+        >
+          @for (currency of options(); track currency.code) {
+            <option [value]="currency.code">
+              {{ currency.flag }} {{ currency.code }} — {{ currency.name }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <app-button
+        class="converter__swap"
+        data-testid="swap-button"
+        type="button"
+        variant="secondary"
+        (click)="swap()"
+      >
+        Swap
+      </app-button>
+
+      <div class="converter__field">
+        <label class="converter__label" for="converter-to">To</label>
+        <select
+          class="converter__select"
+          id="converter-to"
+          [value]="to()"
+          (change)="onToChange($event)"
+        >
+          @for (currency of options(); track currency.code) {
+            <option [value]="currency.code">
+              {{ currency.flag }} {{ currency.code }} — {{ currency.name }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="converter__result" data-testid="converter-result">
+      @let value = result() | async;
+      @if (value === null) {
+        <span class="converter__value">—</span>
+      } @else {
+        <span class="converter__value">
+          {{ value | number: '1.2-2' }} {{ to() }}
+        </span>
+      }
+    </div>
+  </div>
+</app-card>
