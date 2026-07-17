@@ -19,7 +19,10 @@ import { ButtonComponent } from '../../ui/button/button.component';
 import { CardComponent } from '../../ui/card/card.component';
 
 const MAX_SELECTION = 3;
-// Brand token colors from _tokens.scss / DESIGN.md for chart line differentiation.
+// Brand token colors from _tokens.scss / DESIGN.md for chart line differentiation
+// (drawn on <canvas>, not DOM text). --color-accent-cyan (#38c8ff) and
+// --color-accent-orange fail WCAG AA on canvas in light theme — do not reuse
+// either as text/icon color without re-checking contrast.
 const TREND_COLORS = ['#2ead4b', '#38c8ff', '#d03238'];
 const VALID_CODES = new Set(CURATED_TOP_30.map((currency) => currency.code));
 const AGGREGATION_OPTIONS: Aggregation[] = ['daily', 'weekly', 'monthly'];
@@ -51,6 +54,7 @@ export class TrendsComponent implements OnInit {
   readonly maxSelection = MAX_SELECTION;
 
   readonly atMax = computed(() => this.selected().length >= MAX_SELECTION);
+  readonly hasSeries = computed(() => this.historyService.series().length > 0);
 
   readonly chartLabels = computed(() => this.historyService.series().map((point) => point.date));
   readonly chartDatasets = computed<ChartDatasetEntry[]>(() => {

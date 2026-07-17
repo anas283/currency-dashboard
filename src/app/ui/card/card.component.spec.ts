@@ -37,6 +37,7 @@ describe('CardComponent', () => {
       'feature-sage',
       'feature-green',
       'feature-dark',
+      'currency-converter',
     ];
 
     for (const variant of variants) {

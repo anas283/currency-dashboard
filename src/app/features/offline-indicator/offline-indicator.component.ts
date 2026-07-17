@@ -11,12 +11,20 @@ import { map, timer } from 'rxjs';
 import { RealtimeService } from '../../core/services/realtime.service';
 import { BadgeComponent, BadgeVariant } from '../../ui/badge/badge.component';
 
+const STALE_THRESHOLD_MINUTES = 24 * 60;
+
 function formatSecondsAgo(timestamp: number, now: number): number {
   return Math.max(0, Math.floor((now - timestamp) / 1000));
 }
 
-function formatMinutesAgo(timestamp: number, now: number): number {
-  return Math.max(0, Math.floor((now - timestamp) / 60_000));
+// Sample data ships with a fixed timestamp, so "minutes ago" against the
+// current date can run into the hundreds of thousands — show a date instead.
+function formatFetchedAgo(timestamp: number, now: number): string {
+  const minutes = Math.max(0, Math.floor((now - timestamp) / 60_000));
+  if (minutes <= STALE_THRESHOLD_MINUTES) {
+    return `${minutes}m ago`;
+  }
+  return `on ${new Date(timestamp).toLocaleDateString()}`;
 }
 
 @Component({
@@ -68,7 +76,7 @@ export class OfflineIndicatorComponent {
       case 'backing-off':
         return lastUpdated === null
           ? 'Backing off'
-          : `Backing off · fetched ${formatMinutesAgo(lastUpdated, now)}m ago`;
+          : `Backing off · fetched ${formatFetchedAgo(lastUpdated, now)}`;
       case 'paused':
         return 'Paused';
       case 'offline':

@@ -3,6 +3,7 @@
   top: 0;
   z-index: 100;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-lg);
@@ -17,9 +18,18 @@
 
   &__nav {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--sp-xl);
+    gap: var(--sp-lg);
     margin-inline: auto;
+
+    @media (max-width: 767px) {
+      order: 3;
+      width: 100%;
+      margin-inline: 0;
+      justify-content: flex-start;
+      gap: var(--sp-md);
+    }
   }
 
   &__link {

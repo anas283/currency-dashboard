@@ -1,10 +1,11 @@
-<app-card variant="content">
+<app-card variant="currency-converter">
   <div class="converter">
     <div class="converter__row">
       <app-text-input
         class="converter__amount"
         label="Amount"
         type="number"
+        min="0"
         [value]="amount() + ''"
         (valueChange)="onAmountChange($event)"
       />

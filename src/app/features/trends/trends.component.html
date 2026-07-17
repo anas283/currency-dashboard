@@ -42,7 +42,7 @@
     }
   </div>
 
-  @if (selected().length > 0) {
+  @if (selected().length > 0 && hasSeries()) {
     <div class="trends__chart">
       <app-chart [labels]="chartLabels()" [datasets]="chartDatasets()" />
     </div>
@@ -68,6 +68,8 @@
         }
       </tbody>
     </table>
+  } @else if (selected().length > 0) {
+    <p class="trends__empty">No historical data available for the selected currencies.</p>
   } @else {
     <p class="trends__empty">Select a currency to view trends.</p>
   }

@@ -5,7 +5,8 @@
 .trends {
   &__title {
     margin: 0 0 var(--sp-lg);
-    font: var(--text-heading-md);
+    font: var(--text-display-sm);
+    letter-spacing: var(--text-display-sm-letter-spacing);
   }
 
   &__section {

@@ -55,3 +55,4 @@ Thumbs.db
 /cypress/screenshots
 /cypress/downloads
 .playwright-mcp/
+/playwright-screenshots/

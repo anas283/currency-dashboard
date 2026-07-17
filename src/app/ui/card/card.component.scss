@@ -19,7 +19,13 @@
   }
 
   &--feature-dark {
-    background-color: var(--color-ink);
+    background-color: var(--color-ink-fixed);
     color: var(--color-primary);
+  }
+
+  &--currency-converter {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    border: 1px solid var(--color-ink);
   }
 }

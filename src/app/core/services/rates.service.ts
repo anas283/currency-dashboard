@@ -57,8 +57,8 @@ export class RatesService {
 
     const apiKey = this.env?.apiKey ?? '';
     if (!apiKey) {
-      if (!this.snapshot()) {
-        this.snapshot.set(sampleRates as LatestResponse);
+      if (!cached.value) {
+        this.snapshot.set(this.rebaseSample(base));
         this.status.set('offline');
         this.servedFromCache.set(false);
       }
@@ -83,6 +83,23 @@ export class RatesService {
         this.servedFromCache.set(false);
       }
     }
+  }
+
+  // sample-rates.json is always USD-based; re-derive rates for any other base
+  // so switching Base actually changes the numbers, not just the column label.
+  private rebaseSample(base: string): LatestResponse {
+    const original = sampleRates as LatestResponse;
+    const baseRate = original.conversion_rates[base];
+    if (baseRate == null) {
+      return original;
+    }
+
+    const conversion_rates: Record<string, number> = {};
+    for (const [code, rate] of Object.entries(original.conversion_rates)) {
+      conversion_rates[code] = rate / baseRate;
+    }
+
+    return { ...original, base_code: base, conversion_rates };
   }
 
   async convert(amount: number, from: string, to: string): Promise<number | null> {

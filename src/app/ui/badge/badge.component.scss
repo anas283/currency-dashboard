@@ -12,6 +12,8 @@
 
   &--negative {
     background-color: var(--color-negative-bg);
-    color: var(--color-on-primary);
+    // --color-negative-bg is a fixed dark literal in both themes (not theme-adaptive),
+    // so text here must be a fixed light color too, not a theme-flipping token.
+    color: #ffffff;
   }
 }

@@ -10,9 +10,15 @@
   --color-ink: #0e0f0c;
   --color-ink-deep: #163300;
   --color-body: #454745;
-  --color-mute: #868685;
+  --color-mute: #5c5d5b;
   --color-canvas: #ffffff;
   --color-canvas-soft: #e8ebe6;
+
+  // Fixed (non-theme-adaptive) surfaces — for components designed as an
+  // always-dark band (footer, hero-band--dark, card--feature-dark)
+  // regardless of light/dark theme. Never overridden in _theme.scss.
+  --color-ink-fixed: #0e0f0c;
+  --color-canvas-soft-fixed: #e8ebe6;
 
   // Semantic
   --color-positive: #2ead4b;

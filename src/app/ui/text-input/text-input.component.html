@@ -6,6 +6,7 @@
     class="text-input__field"
     [id]="inputId"
     [type]="type()"
+    [attr.min]="min()"
     [placeholder]="placeholder()"
     [value]="value()"
     (input)="onInput($event)"

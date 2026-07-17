@@ -7,7 +7,7 @@
   }
 
   &--dark {
-    background-color: var(--color-ink);
+    background-color: var(--color-ink-fixed);
     color: var(--color-primary);
   }
 
@@ -19,7 +19,13 @@
 
   &__headline {
     margin: 0;
-    font: var(--text-display-xl);
+    font-family: var(--font-family-display);
+    font-weight: 900;
+    // Fluid clamp of display-mega (126px/900): full scale from ~1440px down,
+    // floors at 40px on mobile so a single long word can't overflow the viewport.
+    font-size: clamp(2.5rem, 8vw + 0.5rem, 7.875rem);
+    line-height: 0.85;
+    overflow-wrap: anywhere;
   }
 
   &__subheadline {

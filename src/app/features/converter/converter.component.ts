@@ -62,7 +62,7 @@ export class ConverterComponent {
 
   onAmountChange(value: string): void {
     const parsed = Number.parseFloat(value);
-    this.amount.set(Number.isNaN(parsed) ? 0 : parsed);
+    this.amount.set(Number.isNaN(parsed) ? 0 : Math.max(0, parsed));
   }
 
   onFromChange(event: Event): void {
