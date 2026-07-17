@@ -64,13 +64,17 @@ export class TrendsComponent implements OnInit {
     }));
   });
 
+  private abortController?: AbortController;
+
   constructor() {
     effect(() => {
       const base = this.ratesService.base();
       const selected = this.selected();
       const aggregation = this.aggregation();
 
-      void this.historyService.loadHistory(base, selected, aggregation);
+      this.abortController?.abort();
+      this.abortController = new AbortController();
+      void this.historyService.loadHistory(base, selected, aggregation, this.abortController.signal);
     });
   }
 

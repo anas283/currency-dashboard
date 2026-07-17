@@ -106,7 +106,7 @@ export class HistoryService {
   readonly selected = signal<string[]>([]);
   readonly series = signal<HistorySeriesPoint[]>([]);
 
-  async loadHistory(base: string, currencies: string[], aggregation: Aggregation): Promise<void> {
+  async loadHistory(base: string, currencies: string[], aggregation: Aggregation, abortSignal?: AbortSignal): Promise<void> {
     this.selected.set(currencies);
 
     const dateStrings = getPastDateStrings(30);
@@ -117,6 +117,9 @@ export class HistoryService {
       const missingDates: string[] = [];
 
       for (const dateStr of dateStrings) {
+        if (abortSignal?.aborted) {
+          return;
+        }
         const cached = await this.cache.get<HistoryResponse>(`history::${base}::${dateStr}`);
         if (cached.value) {
           dateResponses.set(dateStr, cached.value);
@@ -127,7 +130,7 @@ export class HistoryService {
 
       let quotaReached = false;
       for (let i = 0; i < missingDates.length; i++) {
-        if (quotaReached) {
+        if (quotaReached || abortSignal?.aborted) {
           break;
         }
 
@@ -156,11 +159,18 @@ export class HistoryService {
       }
     } else {
       for (const dateStr of dateStrings) {
+        if (abortSignal?.aborted) {
+          return;
+        }
         const cached = await this.cache.get<HistoryResponse>(`history::${base}::${dateStr}`);
         if (cached.value) {
           dateResponses.set(dateStr, cached.value);
         }
       }
+    }
+
+    if (abortSignal?.aborted) {
+      return;
     }
 
     this.series.set(buildSeries(dateResponses, currencies, aggregation));

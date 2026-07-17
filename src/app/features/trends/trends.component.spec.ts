@@ -91,7 +91,7 @@ describe('TrendsComponent', () => {
     await flush();
 
     expect(component.selected()).toEqual(['EUR', 'GBP', 'JPY']);
-    expect(historySpy.loadHistory).toHaveBeenCalledWith('USD', ['EUR', 'GBP', 'JPY'], 'daily');
+    expect(historySpy.loadHistory).toHaveBeenCalledWith('USD', ['EUR', 'GBP', 'JPY'], 'daily', jasmine.any(AbortSignal));
 
     const audButton = fixture.nativeElement.querySelector('[data-testid="currency-AUD"] button') as HTMLButtonElement;
     expect(audButton.disabled).toBeTrue();
@@ -110,7 +110,7 @@ describe('TrendsComponent', () => {
     monthlyButton.click();
     await flush();
 
-    expect(historySpy.loadHistory).toHaveBeenCalledWith('USD', ['EUR'], 'monthly');
+    expect(historySpy.loadHistory).toHaveBeenCalledWith('USD', ['EUR'], 'monthly', jasmine.any(AbortSignal));
   });
 
   it('should pre-select currency from query param', async () => {
@@ -118,7 +118,7 @@ describe('TrendsComponent', () => {
     await flush();
 
     expect(component.selected()).toEqual(['EUR']);
-    expect(historySpy.loadHistory).toHaveBeenCalledWith('USD', ['EUR'], 'daily');
+    expect(historySpy.loadHistory).toHaveBeenCalledWith('USD', ['EUR'], 'daily', jasmine.any(AbortSignal));
   });
 
   it('should ignore invalid query param target', async () => {
