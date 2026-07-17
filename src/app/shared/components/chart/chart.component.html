@@ -5,6 +5,17 @@
     aria-label="Line chart showing currency trend data"
   ></canvas>
 
+  @if (datasets().length > 0) {
+    <ul class="chart-legend" aria-label="Chart legend">
+      @for (dataset of datasets(); track $index) {
+        <li>
+          <span class="chart-legend__swatch" [style.background-color]="dataset.borderColor"></span>
+          {{ dataset.label }}
+        </li>
+      }
+    </ul>
+  }
+
   <table class="visually-hidden">
     <caption>Currency trend data table</caption>
     <thead>
