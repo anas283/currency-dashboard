@@ -67,6 +67,6 @@ describe('HomeComponent', () => {
     expect(compiled.querySelector('app-rates-table')).toBeTruthy();
     expect(compiled.querySelector('app-trends')).toBeTruthy();
     expect(compiled.querySelector('app-offline-indicator')).toBeTruthy();
-    expect(compiled.textContent).toContain('Send money, see the market.');
+    expect(compiled.textContent).toContain('Currency Exchange Dashboard');
   });
 });
