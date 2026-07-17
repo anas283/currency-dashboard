@@ -62,7 +62,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: null, stale: true, fetchedAt: null });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
 
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     const response: LatestResponse = {
@@ -92,7 +92,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: cached, stale: false, fetchedAt: 999 });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
 
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     expect(service.snapshot()).toEqual(cached);
@@ -127,7 +127,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: cached, stale: true, fetchedAt: 100 });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     expect(service.snapshot()).toEqual(cached);
     expect(service.status()).toBe('stale');
@@ -159,7 +159,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: cached, stale: false, fetchedAt: 123 });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     req.flush({ error: true, message: 'unauthorized' }, { status: 401, statusText: 'Unauthorized' });
     await promise;
@@ -181,7 +181,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: cached, stale: false, fetchedAt: 123 });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     req.flush({ error: true, message: 'bad gateway' }, { status: 502, statusText: 'Bad Gateway' });
     await promise;
@@ -197,7 +197,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: null, stale: true, fetchedAt: null });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     req.error(new ProgressEvent('error'));
     await promise;
