@@ -12,41 +12,23 @@ import {
   RealtimeService,
   RealtimeStatus,
 } from '../../core/services/realtime.service';
-import { RatesService } from '../../core/services/rates.service';
-import { LatestResponse } from '../../core/models/api.types';
 
 type RealtimeServiceShape = Pick<
   RealtimeService,
-  'status' | 'lastUpdated$' | 'refresh' | 'ngOnDestroy'
->;
-
-type RatesServiceShape = Pick<
-  RatesService,
-  'snapshot' | 'base' | 'servedFromCache' | 'status' | 'loadLatest' | 'convert'
+  'status' | 'lastUpdated' | 'refresh' | 'ngOnDestroy'
 >;
 
 class RealtimeServiceStub implements RealtimeServiceShape {
   readonly status: WritableSignal<RealtimeStatus> = signal('live');
-  readonly lastUpdated$: WritableSignal<number | null> = signal(null);
+  readonly lastUpdated: WritableSignal<number | null> = signal(null);
 
   refresh = jasmine.createSpy('refresh');
   ngOnDestroy = jasmine.createSpy('ngOnDestroy');
 }
 
-class RatesServiceStub implements RatesServiceShape {
-  readonly snapshot = signal<LatestResponse | null>(null);
-  readonly base = signal('USD');
-  readonly servedFromCache = signal(false);
-  readonly status = signal<'live' | 'stale' | 'offline' | 'error'>('live');
-
-  loadLatest = jasmine.createSpy('loadLatest').and.resolveTo();
-  convert = jasmine.createSpy('convert').and.resolveTo(null);
-}
-
 describe('OfflineIndicatorComponent', () => {
   let fixture: ComponentFixture<OfflineIndicatorComponent>;
   let realtimeService: RealtimeServiceStub;
-  let ratesService: RatesServiceStub;
 
   beforeEach(() => {
     TestBed.resetTestingModule();
@@ -55,7 +37,6 @@ describe('OfflineIndicatorComponent', () => {
       imports: [OfflineIndicatorComponent],
       providers: [
         { provide: RealtimeService, useClass: RealtimeServiceStub },
-        { provide: RatesService, useClass: RatesServiceStub },
       ],
     });
   });
@@ -70,7 +51,6 @@ describe('OfflineIndicatorComponent', () => {
     realtimeService = TestBed.inject(
       RealtimeService
     ) as unknown as RealtimeServiceStub;
-    ratesService = TestBed.inject(RatesService) as unknown as RatesServiceStub;
   }
 
   function detectChanges(): void {
@@ -94,10 +74,10 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
-  it('should render "Live" when rates are live and no timestamp is available', fakeAsync(() => {
+  it('should render "Live" when live and no timestamp is available', fakeAsync(() => {
     createFixture();
-    ratesService.status.set('live');
-    realtimeService.lastUpdated$.set(null);
+    realtimeService.status.set('live');
+    realtimeService.lastUpdated.set(null);
 
     detectChanges();
     tick(0);
@@ -107,11 +87,11 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
-  it('should render "Live · updated Xs ago" when rates are live', fakeAsync(() => {
+  it('should render "Live · updated Xs ago" when live', fakeAsync(() => {
     const now = Date.now();
     createFixture();
-    ratesService.status.set('live');
-    realtimeService.lastUpdated$.set(now - 30_000);
+    realtimeService.status.set('live');
+    realtimeService.lastUpdated.set(now - 30_000);
 
     detectChanges();
     tick(0);
@@ -125,8 +105,8 @@ describe('OfflineIndicatorComponent', () => {
   it('should refresh the "Xs ago" text every second when live', fakeAsync(() => {
     const now = Date.now();
     createFixture();
-    ratesService.status.set('live');
-    realtimeService.lastUpdated$.set(now - 30_000);
+    realtimeService.status.set('live');
+    realtimeService.lastUpdated.set(now - 30_000);
 
     detectChanges();
     tick(0);
@@ -145,11 +125,11 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
-  it('should refresh the "Xm ago" text every minute when stale', fakeAsync(() => {
+  it('should refresh the "Xm ago" text every minute when backing-off', fakeAsync(() => {
     const now = Date.now();
     createFixture();
-    ratesService.status.set('stale');
-    realtimeService.lastUpdated$.set(now - 120_000);
+    realtimeService.status.set('backing-off');
+    realtimeService.lastUpdated.set(now - 120_000);
 
     detectChanges();
     tick(0);
@@ -168,37 +148,49 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
-  it('should render "Cached" when rates are stale and no timestamp is available', fakeAsync(() => {
+  it('should render "Backing off" when backing-off and no timestamp is available', fakeAsync(() => {
     createFixture();
-    ratesService.status.set('stale');
-    realtimeService.lastUpdated$.set(null);
+    realtimeService.status.set('backing-off');
+    realtimeService.lastUpdated.set(null);
 
     detectChanges();
     tick(0);
 
-    expect(getBadgeText()).toBe('Cached');
+    expect(getBadgeText()).toBe('Backing off');
 
     discardPeriodicTasks();
   }));
 
-  it('should render "Cached · fetched Xm ago" when rates are stale', fakeAsync(() => {
+  it('should render "Backing off · fetched Xm ago" when backing-off', fakeAsync(() => {
     const now = Date.now();
     createFixture();
-    ratesService.status.set('stale');
-    realtimeService.lastUpdated$.set(now - 120_000);
+    realtimeService.status.set('backing-off');
+    realtimeService.lastUpdated.set(now - 120_000);
 
     detectChanges();
     tick(0);
 
-    expect(getBadgeText()).toContain('Cached · fetched');
+    expect(getBadgeText()).toContain('Backing off · fetched');
     expect(getBadgeText()).toContain('m ago');
+
+    discardPeriodicTasks();
+  }));
+
+  it('should render "Paused" when paused', fakeAsync(() => {
+    createFixture();
+    realtimeService.status.set('paused');
+
+    detectChanges();
+    tick(0);
+
+    expect(getBadgeText()).toBe('Paused');
 
     discardPeriodicTasks();
   }));
 
   it('should render "Offline — showing cached data" when offline', fakeAsync(() => {
     createFixture();
-    ratesService.status.set('offline');
+    realtimeService.status.set('offline');
 
     detectChanges();
     tick(0);
@@ -210,7 +202,7 @@ describe('OfflineIndicatorComponent', () => {
 
   it('should render "Error — using cached data" when in error state', fakeAsync(() => {
     createFixture();
-    ratesService.status.set('error');
+    realtimeService.status.set('error');
 
     detectChanges();
     tick(0);
@@ -220,16 +212,16 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
-  it('should use the positive badge variant for live and stale states', fakeAsync(() => {
+  it('should use the positive badge variant for live and polling states', fakeAsync(() => {
     createFixture();
-    ratesService.status.set('live');
+    realtimeService.status.set('live');
     detectChanges();
     tick(0);
     expect(
       fixture.nativeElement.querySelector('.badge')
     ).toHaveClass('badge--positive');
 
-    ratesService.status.set('stale');
+    realtimeService.status.set('polling');
     detectChanges();
     tick(0);
     expect(
@@ -239,16 +231,30 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
-  it('should use the negative badge variant for offline and error states', fakeAsync(() => {
+  it('should use the negative badge variant for backing-off, paused, offline, and error states', fakeAsync(() => {
     createFixture();
-    ratesService.status.set('offline');
+    realtimeService.status.set('backing-off');
     detectChanges();
     tick(0);
     expect(
       fixture.nativeElement.querySelector('.badge')
     ).toHaveClass('badge--negative');
 
-    ratesService.status.set('error');
+    realtimeService.status.set('paused');
+    detectChanges();
+    tick(0);
+    expect(
+      fixture.nativeElement.querySelector('.badge')
+    ).toHaveClass('badge--negative');
+
+    realtimeService.status.set('offline');
+    detectChanges();
+    tick(0);
+    expect(
+      fixture.nativeElement.querySelector('.badge')
+    ).toHaveClass('badge--negative');
+
+    realtimeService.status.set('error');
     detectChanges();
     tick(0);
     expect(

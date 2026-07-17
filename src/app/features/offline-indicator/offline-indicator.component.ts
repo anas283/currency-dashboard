@@ -9,7 +9,6 @@ import {
 import { map, timer } from 'rxjs';
 
 import { RealtimeService } from '../../core/services/realtime.service';
-import { RatesService } from '../../core/services/rates.service';
 import { BadgeComponent, BadgeVariant } from '../../ui/badge/badge.component';
 
 function formatSecondsAgo(timestamp: number, now: number): number {
@@ -30,14 +29,13 @@ function formatMinutesAgo(timestamp: number, now: number): number {
 })
 export class OfflineIndicatorComponent {
   readonly realtimeService = inject(RealtimeService);
-  readonly ratesService = inject(RatesService);
 
   private readonly now = signal(Date.now());
 
   constructor() {
     effect((onCleanup) => {
-      const status = this.ratesService.status();
-      const interval = status === 'live' ? 1000 : 60_000;
+      const status = this.realtimeService.status();
+      const interval = status === 'live' || status === 'polling' ? 1000 : 60_000;
       const base = Date.now();
 
       const subscription = timer(0, interval)
@@ -49,13 +47,13 @@ export class OfflineIndicatorComponent {
   }
 
   readonly variant = computed<BadgeVariant>(() => {
-    const current = this.ratesService.status();
-    return current === 'live' || current === 'stale' ? 'positive' : 'negative';
+    const current = this.realtimeService.status();
+    return current === 'live' || current === 'polling' ? 'positive' : 'negative';
   });
 
   readonly label = computed<string>(() => {
-    const current = this.ratesService.status();
-    const lastUpdated = this.realtimeService.lastUpdated$();
+    const current = this.realtimeService.status();
+    const lastUpdated = this.realtimeService.lastUpdated();
     const now = this.now();
 
     switch (current) {
@@ -63,10 +61,16 @@ export class OfflineIndicatorComponent {
         return lastUpdated === null
           ? 'Live'
           : `Live · updated ${formatSecondsAgo(lastUpdated, now)}s ago`;
-      case 'stale':
+      case 'polling':
         return lastUpdated === null
-          ? 'Cached'
-          : `Cached · fetched ${formatMinutesAgo(lastUpdated, now)}m ago`;
+          ? 'Polling'
+          : `Polling · updated ${formatSecondsAgo(lastUpdated, now)}s ago`;
+      case 'backing-off':
+        return lastUpdated === null
+          ? 'Backing off'
+          : `Backing off · fetched ${formatMinutesAgo(lastUpdated, now)}m ago`;
+      case 'paused':
+        return 'Paused';
       case 'offline':
         return 'Offline — showing cached data';
       case 'error':
