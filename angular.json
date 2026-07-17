@@ -71,7 +71,7 @@
                 },
                 {
                   "type": "any",
-                  "maximumWarning": "200kb"
+                  "maximumWarning": "300kb"
                 }
               ],
               "outputHashing": "all"
