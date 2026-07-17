@@ -377,4 +377,60 @@ describe('HistoryService', () => {
     httpTestingController.expectNone(() => true);
     expect(service.series().length).toBeGreaterThan(0);
   });
+
+  it('should return early when abortSignal is already aborted with API key', async () => {
+    const abortController = new AbortController();
+    abortController.abort();
+    const service = createService();
+
+    await service.loadHistory('USD', ['EUR'], 'daily', abortController.signal);
+
+    httpTestingController.expectNone(() => true);
+    expect(service.series()).toEqual([]);
+  });
+
+  it('should return early when abortSignal is already aborted without API key', async () => {
+    env.apiKey = '';
+    const abortController = new AbortController();
+    abortController.abort();
+    const service = createService();
+
+    await service.loadHistory('USD', ['EUR'], 'daily', abortController.signal);
+
+    httpTestingController.expectNone(() => true);
+    expect(service.series()).toEqual([]);
+  });
+
+  it('should abort during async cache read and return before setting series', async () => {
+    env.apiKey = '';
+    const abortController = new AbortController();
+    const service = createService();
+    const dates = getExpectedDateStrings();
+    const lastDate = dates[dates.length - 1];
+
+    let resolveLastGet: () => void;
+
+    cacheSpy.get.and.callFake(<T>(key: string): Promise<{ value: T | null; stale: boolean; fetchedAt: number | null }> => {
+      const parsed = parseDateKey(key);
+      if (parsed?.date === lastDate) {
+        return new Promise((resolve) => {
+          resolveLastGet = () => resolve({ value: null as T | null, stale: true, fetchedAt: null });
+        });
+      }
+      return Promise.resolve({ value: null as T | null, stale: true, fetchedAt: null });
+    });
+
+    const promise = service.loadHistory('USD', ['EUR'], 'daily', abortController.signal);
+
+    await drainMicrotasks(50);
+
+    abortController.abort();
+    resolveLastGet!();
+    await drainMicrotasks(5);
+
+    await promise;
+
+    httpTestingController.expectNone(() => true);
+    expect(service.series()).toEqual([]);
+  });
 });
