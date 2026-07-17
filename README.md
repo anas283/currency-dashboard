@@ -92,6 +92,32 @@ The app consumes [ExchangeRate-API] (v6 endpoints: `latest`, `pair`,
 
 ---
 
+## Architecture Decisions
+
+- **Standalone components over NgModules** — Simpler tree-shaking and lazy
+  loading; no module ceremony for a mid-size app with clear feature
+  boundaries.
+- **Angular Signals over RxJS Subjects / NgRx** — Fine-grained reactivity
+  with less boilerplate; components read signals directly without async
+  pipes or redundant streams.
+- **RxJS `timer` polling over raw `setInterval`** — Built-in
+  `fakeAsync` testability, automatic cleanup on unsubscribe, and easy
+  composition with back-off operators.
+- **IndexedDB via `idb-keyval` over `localStorage`** — Supports structured
+  objects and large payloads; async API avoids blocking the main thread
+  when writing time-series cache entries.
+- **Raw Chart.js behind a thin wrapper over a heavy charting library** —
+  Keeps bundle size small; the wrapper component handles lifecycle and
+  theme updates while Chart.js provides responsive, canvas-based rendering.
+- **Zone.js kept instead of zoneless** — Karma and Cypress both rely on
+  Angular’s automatic change-detection hooks; zoneless would require manual
+  `fixture.detectChanges()` everywhere and complicate E2E waits.
+- **CSS custom properties + `data-theme` attribute for theming** — No
+  runtime stylesheet swaps; the toggle flips one HTML attribute and every
+  component reacts via inherited CSS variables.
+
+---
+
 ## Folder Structure
 
 ```text
