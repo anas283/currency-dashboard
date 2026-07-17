@@ -9,7 +9,7 @@
     "test:watch": "ng test",
     "lint": "ng lint",
     "typecheck": "tsc -p tsconfig.app.json --noEmit",
-    "serve": "http-server dist/currency-dashboard/browser -p 4200 -s",
+    "serve": "npx serve dist/currency-dashboard/browser -l 4200 --single",
     "cypress:run": "cypress run",
     "e2e": "npm run build && start-server-and-test serve http://localhost:4200 cypress:run",
     "verify": "npm run lint && npm run typecheck && npm test && npm run e2e"

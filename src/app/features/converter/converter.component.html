@@ -14,11 +14,10 @@
         <select
           class="converter__select"
           id="converter-from"
-          [value]="from()"
           (change)="onFromChange($event)"
         >
           @for (currency of options(); track currency.code) {
-            <option [value]="currency.code">
+            <option [value]="currency.code" [selected]="currency.code === from()">
               {{ currency.flag }} {{ currency.code }} — {{ currency.name }}
             </option>
           }
@@ -40,11 +39,10 @@
         <select
           class="converter__select"
           id="converter-to"
-          [value]="to()"
           (change)="onToChange($event)"
         >
           @for (currency of options(); track currency.code) {
-            <option [value]="currency.code">
+            <option [value]="currency.code" [selected]="currency.code === to()">
               {{ currency.flag }} {{ currency.code }} — {{ currency.name }}
             </option>
           }
