@@ -18,8 +18,8 @@ describe('Offline', () => {
   });
 
   it('shows offline indicator on API failure', () => {
-    cy.get('app-offline-indicator app-badge .badge')
+    cy.get('[data-testid="offline-badge"] .badge')
       .should('have.class', 'badge--negative')
-      .and('contain', 'Offline');
+      .and('contain', 'Backing off');
   });
 });

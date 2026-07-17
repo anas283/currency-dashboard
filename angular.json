@@ -57,6 +57,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": ".nojekyll",
+                "input": ".",
+                "output": "."
               }
             ],
             "styles": ["src/styles.scss"]

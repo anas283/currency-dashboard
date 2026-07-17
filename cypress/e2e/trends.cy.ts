@@ -1,20 +1,22 @@
+function setupWindow(win: Cypress.AUTWindow): void {
+  const req = win.indexedDB.deleteDatabase('currency-cache');
+  req.onsuccess = () => {};
+  req.onerror = () => {};
+  (win as any).__CYPRESS_ENV__ = {
+    apiBase: 'https://v6.exchangerate-api.com/v6',
+    apiKey: 'test-key',
+    pollInterval: 60000,
+    staleThreshold: 300000,
+  };
+}
+
 describe('Trends', () => {
   beforeEach(() => {
     cy.intercept('GET', /\/history\/[^/]+\/\d{4}\/\d{2}\/\d{2}$/, { fixture: 'history-usd.json' }).as('history');
     cy.intercept('GET', '**/latest/**', { fixture: 'latest-usd.json' }).as('latest');
 
     cy.visit('/trends', {
-      onBeforeLoad(win) {
-        const req = win.indexedDB.deleteDatabase('currency-cache');
-        req.onsuccess = () => {};
-        req.onerror = () => {};
-        (win as any).__CYPRESS_ENV__ = {
-          apiBase: 'https://v6.exchangerate-api.com/v6',
-          apiKey: 'test-key',
-          pollInterval: 60000,
-          staleThreshold: 300000,
-        };
-      },
+      onBeforeLoad: setupWindow,
     });
 
     cy.wait('@history');
@@ -62,17 +64,7 @@ describe('Trends', () => {
 
   it('pre-selects currency when navigating from rates', () => {
     cy.visit('/rates', {
-      onBeforeLoad(win) {
-        const req = win.indexedDB.deleteDatabase('currency-cache');
-        req.onsuccess = () => {};
-        req.onerror = () => {};
-        (win as any).__CYPRESS_ENV__ = {
-          apiBase: 'https://v6.exchangerate-api.com/v6',
-          apiKey: 'test-key',
-          pollInterval: 60000,
-          staleThreshold: 300000,
-        };
-      },
+      onBeforeLoad: setupWindow,
     });
 
     cy.wait('@latest');
