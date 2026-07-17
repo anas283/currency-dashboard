@@ -33,7 +33,7 @@ class HistoryServiceStub implements Partial<HistoryService> {
 
 class RealtimeServiceStub implements Partial<RealtimeService> {
   readonly status: WritableSignal<RealtimeStatus> = signal('live');
-  readonly lastUpdated$: WritableSignal<number | null> = signal(null);
+  readonly lastUpdated: WritableSignal<number | null> = signal(null);
 }
 
 describe('HomeComponent', () => {

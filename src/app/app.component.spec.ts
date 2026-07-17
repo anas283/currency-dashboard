@@ -3,12 +3,16 @@ import { provideRouter } from '@angular/router';
 
 import { App } from './app.component';
 import { routes } from './app.routes';
+import { RealtimeService } from './core/services/realtime.service';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter(routes)],
+      providers: [
+        provideRouter(routes),
+        { provide: RealtimeService, useValue: { start: () => undefined, stop: () => undefined } },
+      ],
     }).compileComponents();
   });
 
