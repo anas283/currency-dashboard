@@ -51,7 +51,7 @@
     </div>
 
     <div class="converter__result" data-testid="converter-result">
-      @let value = result() | async;
+      @let value = resultValue();
       @if (value === null) {
         <span class="converter__value">—</span>
       } @else {
