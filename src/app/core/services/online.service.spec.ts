@@ -48,4 +48,17 @@ describe('OnlineService', () => {
 
     expect(service.online()).toBeFalse();
   });
+
+  it('should default to true when navigator is undefined', () => {
+    const global = globalThis as unknown as Record<string, unknown>;
+    const nav = global['navigator'];
+    delete global['navigator'];
+
+    try {
+      const service = createService();
+      expect(service.online()).toBeTrue();
+    } finally {
+      global['navigator'] = nav;
+    }
+  });
 });

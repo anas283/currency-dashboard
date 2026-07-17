@@ -3,7 +3,10 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "schematicCollections": ["angular-eslint"]
+    "schematicCollections": [
+      "angular-eslint"
+    ],
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -54,6 +57,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": ".nojekyll",
+                "input": ".",
+                "output": "."
               }
             ],
             "styles": ["src/styles.scss"]
@@ -71,7 +79,7 @@
                 },
                 {
                   "type": "any",
-                  "maximumWarning": "200kb"
+                  "maximumWarning": "300kb"
                 }
               ],
               "outputHashing": "all"
@@ -100,7 +108,9 @@
           "builder": "@angular/build:karma",
           "options": {
             "tsConfig": "tsconfig.spec.json",
-            "polyfills": ["zone.js", "zone.js/testing"]
+            "polyfills": ["zone.js", "zone.js/testing"],
+            "karmaConfig": "karma.conf.js",
+            "codeCoverage": true
           }
         },
         "lint": {

@@ -27,7 +27,8 @@
     color: var(--color-ink);
     text-decoration: none;
 
-    &:hover {
+    &:hover,
+    &--active {
       text-decoration: underline;
     }
   }

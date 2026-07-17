@@ -25,10 +25,25 @@ export class RatesService {
     if (this.servedFromCache()) {
       return this.cacheFetchedAt;
     }
-    return this.snapshot()?.time_last_update_unix ?? this.cacheFetchedAt;
+    const unix = this.snapshot()?.time_last_update_unix;
+    return unix != null ? unix * 1000 : null;
   });
 
+  private loadPromise?: Promise<void>;
+
   async loadLatest(): Promise<void> {
+    if (this.loadPromise) {
+      return this.loadPromise;
+    }
+
+    this.loadPromise = this.doLoadLatest().finally(() => {
+      this.loadPromise = undefined;
+    });
+
+    return this.loadPromise;
+  }
+
+  private async doLoadLatest(): Promise<void> {
     const base = this.base();
     const cacheKey = `latest::${base}`;
     const cached = await this.cache.get<LatestResponse>(cacheKey);
@@ -50,24 +65,24 @@ export class RatesService {
       return;
     }
 
-    this.http.get<LatestResponse>(`${this.env?.apiBase}/${apiKey}/latest/${base}`).subscribe({
-      next: (data) => {
-        this.snapshot.set(data);
+    try {
+      const data = await firstValueFrom(
+        this.http.get<LatestResponse>(`${this.env?.apiBase}/${apiKey}/latest/${base}`),
+      );
+      this.snapshot.set(data);
+      this.servedFromCache.set(false);
+      this.status.set('live');
+      this.cacheFetchedAt = null;
+      void this.cache.set(cacheKey, data);
+    } catch {
+      if (this.snapshot()) {
+        this.status.set(navigator.onLine ? 'stale' : 'offline');
+      } else {
+        this.snapshot.set(sampleRates as LatestResponse);
+        this.status.set('offline');
         this.servedFromCache.set(false);
-        this.status.set('live');
-        this.cacheFetchedAt = null;
-        this.cache.set(cacheKey, data);
-      },
-      error: () => {
-        if (this.snapshot()) {
-          this.status.set(navigator.onLine ? 'stale' : 'offline');
-        } else {
-          this.snapshot.set(sampleRates as LatestResponse);
-          this.status.set('offline');
-          this.servedFromCache.set(false);
-        }
-      },
-    });
+      }
+    }
   }
 
   async convert(amount: number, from: string, to: string): Promise<number | null> {

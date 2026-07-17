@@ -2,10 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
-import { AsyncPipe, DecimalPipe } from '@angular/common';
+import { DecimalPipe } from '@angular/common';
 
 import { CURATED_TOP_30, Currency } from '../../core/models/currency';
 import { RatesService } from '../../core/services/rates.service';
@@ -17,7 +18,6 @@ import { TextInputComponent } from '../../ui/text-input/text-input.component';
   selector: 'app-converter',
   standalone: true,
   imports: [
-    AsyncPipe,
     ButtonComponent,
     CardComponent,
     DecimalPipe,
@@ -45,9 +45,20 @@ export class ConverterComponent {
     return [{ code: base, name: base, flag: '' }, ...CURATED_TOP_30];
   });
 
-  readonly result = computed(() =>
-    this.ratesService.convert(this.amount(), this.from(), this.to()),
-  );
+  readonly resultValue = signal<number | null>(null);
+
+  constructor() {
+    effect(() => {
+      const amount = this.amount();
+      const from = this.from();
+      const to = this.to();
+      this.ratesService.convert(amount, from, to).then((value) => {
+        if (amount === this.amount() && from === this.from() && to === this.to()) {
+          this.resultValue.set(value);
+        }
+      });
+    }, { allowSignalWrites: true });
+  }
 
   onAmountChange(value: string): void {
     const parsed = Number.parseFloat(value);

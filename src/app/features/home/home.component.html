@@ -1,18 +1,14 @@
-<app-hero-band
-  headline="Currency Exchange Dashboard"
-  subheadline="Track live rates, trends, and convert currencies in one place."
->
-  <app-converter class="home__converter" />
+<div class="home__status">
+  <app-offline-indicator />
+</div>
+
+<app-hero-band headline="Currency Exchange Dashboard">
+  <div class="home__hero-content">
+    <app-converter class="home__converter" />
+  </div>
 </app-hero-band>
 
 <section class="home__sections">
-  <app-card class="home__card">
-    <h2>Latest Rates</h2>
-    <p>Rates table placeholder</p>
-  </app-card>
-
-  <app-card class="home__card">
-    <h2>Trends</h2>
-    <p>Trends placeholder</p>
-  </app-card>
+  <app-rates-table class="home__rates" />
+  <app-trends class="home__trends" />
 </section>

@@ -1,59 +1,214 @@
-# CurrencyDashboard
+# Currency Exchange Rate Dashboard
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.6.
+Live demo: <https://anas.github.io/currency-dashboard>
 
-## Development server
+A real-time Currency Exchange Rate Dashboard built with Angular 22.
+It shows sortable exchange rates, historical trend charts, a currency
+converter, offline support, and light/dark theming.
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
-```
+## Tech Stack
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- **Framework:** Angular 22.0.6 (standalone components, signals, RxJS)
+- **Language:** TypeScript 6.0 (strict mode)
+- **Styling:** SCSS + CSS custom properties for theming
+- **Charts:** Chart.js 4.5.1
+- **Offline cache:** IndexedDB via `idb-keyval` 6.3
+- **Testing:** Karma 6.4 + Jasmine (unit), Cypress 15.18 (E2E)
+- **Linting:** ESLint via `@angular-eslint` 22.1
+- **CI/CD:** GitHub Actions → GitHub Pages
 
-## Code scaffolding
+---
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## Getting Started
 
 ```bash
-ng build
+git clone https://github.com/anas/currency-dashboard.git
+cd currency-dashboard
+npm install
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Open <http://localhost:4200> in your browser. The dev server reloads
+automatically on file changes.
 
-## Running unit tests
+---
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## API Key
+
+The app consumes [ExchangeRate-API] (v6 endpoints: `latest`, `pair`,
+`history`).
+
+[ExchangeRate-API]: https://www.exchangerate-api.com
+
+1. Sign up for a free key at <https://www.exchangerate-api.com>.
+2. Add the key to `src/environments/environment.ts`:
+
+   ```typescript
+   export const environment = {
+     apiBase: 'https://v6.exchangerate-api.com/v6',
+     apiKey: 'YOUR_KEY_HERE',
+     pollInterval: 60_000,
+     staleThreshold: 300_000,
+   };
+   ```
+
+   The production build uses `src/environments/environment.prod.ts`,
+   where the key is injected by CI via `secrets.EXCHANGERATE_API_KEY`.
+
+3. If `apiKey` is left empty, the app runs from:
+   - cached IndexedDB data (if available), or
+   - built-in sample rates (`sample-rates.json`) as a fully offline
+     fallback.
+
+---
+
+## Architecture Overview
+
+- **Standalone components** — no `NgModule`s; each component is
+  self-contained.
+- **Angular Signals** — state lives in services as signals; components
+  read with `computed` and bind directly in templates.
+- **Services (`providedIn: 'root'`)**
+  - `RatesService` — fetches latest rates, caches them, and falls back
+    to sample data.
+  - `HistoryService` — loads historical time-series and aggregates
+    daily / weekly / monthly.
+  - `RealtimeService` — RxJS `timer` polling engine with exponential
+    backoff; pauses when the tab is hidden or the browser goes offline.
+  - `CacheService` — typed IndexedDB wrapper with schema versioning and
+    stale thresholds.
+  - `OnlineService` — tracks `navigator.onLine` with window event
+    listeners.
+  - `ThemeService` — toggles light/dark themes by setting
+    `<html data-theme>` and persists the choice in `localStorage`.
+- **Theming** — CSS custom properties keyed off `data-theme`; no
+  runtime stylesheet swaps.
+- **Offline / cache strategy** — every API read checks IndexedDB first,
+  serves cached data immediately, then refreshes from the network. If the
+  network fails and no cache exists, sample data is used and an offline
+  indicator is shown.
+
+---
+
+## Architecture Decisions
+
+- **Standalone components over NgModules** — Simpler tree-shaking and lazy
+  loading; no module ceremony for a mid-size app with clear feature
+  boundaries.
+- **Angular Signals over RxJS Subjects / NgRx** — Fine-grained reactivity
+  with less boilerplate; components read signals directly without async
+  pipes or redundant streams.
+- **RxJS `timer` polling over raw `setInterval`** — Built-in
+  `fakeAsync` testability, automatic cleanup on unsubscribe, and easy
+  composition with back-off operators.
+- **IndexedDB via `idb-keyval` over `localStorage`** — Supports structured
+  objects and large payloads; async API avoids blocking the main thread
+  when writing time-series cache entries.
+- **Raw Chart.js behind a thin wrapper over a heavy charting library** —
+  Keeps bundle size small; the wrapper component handles lifecycle and
+  theme updates while Chart.js provides responsive, canvas-based rendering.
+- **Zone.js kept instead of zoneless** — Karma and Cypress both rely on
+  Angular’s automatic change-detection hooks; zoneless would require manual
+  `fixture.detectChanges()` everywhere and complicate E2E waits.
+- **CSS custom properties + `data-theme` attribute for theming** — No
+  runtime stylesheet swaps; the toggle flips one HTML attribute and every
+  component reacts via inherited CSS variables.
+
+---
+
+## Folder Structure
+
+```text
+src/app/
+├── core/
+│   ├── services/          # Rates, History, Realtime, Cache, Online, Theme
+│   ├── models/            # TypeScript interfaces and API types
+│   └── tokens/            # ENV_TOKEN injection token
+├── features/
+│   ├── home/              # Landing / dashboard shell
+│   ├── rates-table/       # Sortable, searchable rates grid
+│   ├── trends/            # Multi-currency historical chart
+│   ├── converter/         # Amount + from/to currency calculator
+│   └── offline-indicator/ # Badge when data is stale or offline
+├── shared/
+│   ├── components/
+│   │   └── chart/         # Thin Chart.js wrapper
+│   ├── pipes/             # SortPipe, CurrencyFilterPipe
+│   ├── directives/        # SortHeaderDirective
+│   └── utils/             # Date-bucketing helpers
+└── ui/
+    ├── nav-bar/           # Top navigation
+    ├── hero-band/         # Hero banner
+    ├── card/              # Reusable card shell
+    ├── badge/             # Status badge
+    ├── button/            # Action buttons
+    ├── text-input/        # Form inputs
+    └── footer/            # Page footer
+```
+
+---
+
+## Testing
+
+### Unit tests
 
 ```bash
-ng test
+npm test
 ```
 
-## Running end-to-end tests
+Runs Karma in headless Chrome, collects coverage, and then checks
+category thresholds:
 
-For end-to-end (e2e) testing, run:
+| Category    | Threshold |
+|-------------|-----------|
+| Services    | ≥ 90 %    |
+| Components  | ≥ 80 %    |
+| Utils/Pipes | ≥ 95 %    |
+| Overall     | ≥ 85 %    |
+
+### End-to-end tests
 
 ```bash
-ng e2e
+npm run e2e
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Builds the production bundle, serves it locally, and runs Cypress
+headless. Coverage includes rates loading, currency conversion, theme
+toggle, offline mode, and trends chart.
 
-## Additional Resources
+---
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## CI/CD
+
+`.github/workflows/ci.yml` runs on every push/PR to `main`:
+
+1. `npm ci`
+2. Inject production API key into `environment.prod.ts`
+3. `npm run lint`
+4. `npm run typecheck`
+5. `npm test`
+6. `npm run e2e`
+7. `npm run build`
+8. Deploy `dist/currency-dashboard/browser` to GitHub Pages (only on
+   `main` push)
+
+A `.nojekyll` file at the repo root disables Jekyll processing so
+deep-linking works on GitHub Pages. The build uses `baseHref: './'`
+for relative path compatibility.
+
+---
+
+## Scripts
+
+| Script              | Description                                            |
+|---------------------|--------------------------------------------------------|
+| `npm start`         | Dev server (`ng serve`)                                |
+| `npm run build`     | Production build (ng build --configuration production) |
+| `npm test`          | Unit tests + coverage + category gate                  |
+| `npm run test:watch`| Unit tests in watch mode                               |
+| `npm run lint`      | ESLint                                                 |
+| `npm run typecheck` | TypeScript `noEmit` check                              |
+| `npm run e2e`       | Build + serve + Cypress headless                       |
+| `npm run verify`    | Lint → typecheck → test → e2e (full validation)        |

@@ -59,17 +59,19 @@ describe('RealtimeService', () => {
 
   it('should be created with live status', fakeAsync(() => {
     service = createService();
+    service.start();
     tick(0);
 
     expect(service).toBeTruthy();
     expect(service.status()).toBe('live');
-    expect(service.lastUpdated$()).toBeNull();
+    expect(service.lastUpdated()).toBeNull();
 
     discardPeriodicTasks();
   }));
 
   it('should poll immediately on start', fakeAsync(() => {
     service = createService();
+    service.start();
     tick(0);
 
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
@@ -80,6 +82,7 @@ describe('RealtimeService', () => {
 
   it('should poll on each interval tick', fakeAsync(() => {
     service = createService();
+    service.start();
 
     tick(0);
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
@@ -96,6 +99,7 @@ describe('RealtimeService', () => {
   it('should pause polling when document is hidden', fakeAsync(() => {
     spyOnProperty(document, 'hidden', 'get').and.returnValue(true);
     service = createService();
+    service.start();
     tick(0);
 
     expect(service.status()).toBe('paused');
@@ -106,6 +110,7 @@ describe('RealtimeService', () => {
     let hidden = true;
     spyOnProperty(document, 'hidden', 'get').and.callFake(() => hidden);
     service = createService();
+    service.start();
 
     tick(0);
     expect(service.status()).toBe('paused');
@@ -124,6 +129,7 @@ describe('RealtimeService', () => {
   it('should pause polling when offline', fakeAsync(() => {
     onlineService.online.set(false);
     service = createService();
+    service.start();
     tick(0);
 
     expect(service.status()).toBe('offline');
@@ -133,6 +139,7 @@ describe('RealtimeService', () => {
   it('should resume polling when online comes back', fakeAsync(() => {
     onlineService.online.set(false);
     service = createService();
+    service.start();
 
     tick(0);
     expect(service.status()).toBe('offline');
@@ -153,6 +160,7 @@ describe('RealtimeService', () => {
       ratesService.status.set('stale');
     });
     service = createService();
+    service.start();
 
     tick(0);
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
@@ -179,6 +187,7 @@ describe('RealtimeService', () => {
       ratesService.status.set(calls <= 2 ? 'stale' : 'live');
     });
     service = createService();
+    service.start();
 
     tick(0);
     expect(service.status()).toBe('backing-off');
@@ -196,12 +205,13 @@ describe('RealtimeService', () => {
     discardPeriodicTasks();
   }));
 
-  it('should double base interval after 5 consecutive failures', fakeAsync(() => {
+  it('should reset currentInterval to BASE_INTERVAL on success after failures', fakeAsync(() => {
     env.pollInterval = 1_000;
     ratesService.loadLatest.and.callFake(async () => {
       ratesService.status.set('stale');
     });
     service = createService();
+    service.start();
 
     tick(0);
 
@@ -213,8 +223,7 @@ describe('RealtimeService', () => {
 
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(5);
 
-    // After the 5th failure, the base interval doubles to 2s. Succeed on the
-    // next backoff tick (16s) so future normal polling uses the doubled interval.
+    // Succeed on the next backoff tick (16s).
     ratesService.loadLatest.and.callFake(async () => {
       ratesService.status.set('live');
     });
@@ -222,35 +231,36 @@ describe('RealtimeService', () => {
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(6);
     expect(service.status()).toBe('live');
 
-    // Next normal poll should use doubled interval (2s).
-    tick(2_000);
+    // Next normal poll should reset to the original BASE_INTERVAL (1s).
+    tick(1_000);
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(7);
 
     discardPeriodicTasks();
   }));
 
-  it('should cap doubled base interval at 5 minutes', fakeAsync(() => {
+  it('should not permanently increase interval after repeated failure cycles', fakeAsync(() => {
     env.pollInterval = 2 * 60 * 1000; // 2 minutes
     ratesService.loadLatest.and.callFake(async () => {
       ratesService.status.set('stale');
     });
     service = createService();
+    service.start();
 
     tick(0);
 
-    // First 4 additional failures to reach 5 total; baseInterval -> 4m.
+    // First 4 additional failures to reach 5 total.
     for (let i = 0; i < 4; i++) {
       tick(Math.min(1000 * 2 ** i, 60_000));
     }
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(5);
 
-    // Another 5 failures; baseInterval would go 4m -> 8m but caps at 5m.
+    // Another 5 failures.
     for (let i = 0; i < 5; i++) {
       tick(Math.min(1000 * 2 ** (i + 4), 60_000));
     }
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(10);
 
-    // Succeed; next normal poll should use the capped 5m interval.
+    // Succeed; next normal poll should use the original BASE_INTERVAL (2m).
     ratesService.loadLatest.and.callFake(async () => {
       ratesService.status.set('live');
     });
@@ -258,7 +268,7 @@ describe('RealtimeService', () => {
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(11);
     expect(service.status()).toBe('live');
 
-    tick(5 * 60 * 1000);
+    tick(2 * 60 * 1000);
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(12);
 
     discardPeriodicTasks();
@@ -266,6 +276,7 @@ describe('RealtimeService', () => {
 
   it('should refresh immediately', fakeAsync(() => {
     service = createService();
+    service.start();
 
     tick(0);
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
@@ -288,6 +299,7 @@ describe('RealtimeService', () => {
     );
 
     service = createService();
+    service.start();
     tick(0);
 
     expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
@@ -305,14 +317,14 @@ describe('RealtimeService', () => {
     discardPeriodicTasks();
   }));
 
-  it('should reflect RatesService.lastUpdated through lastUpdated$', () => {
+  it('should reflect RatesService.lastUpdated through lastUpdated', () => {
     service = createService();
 
-    expect(service.lastUpdated$()).toBeNull();
+    expect(service.lastUpdated()).toBeNull();
 
     ratesService.lastUpdated.set(1_000);
 
-    expect(service.lastUpdated$()).toBe(1_000);
+    expect(service.lastUpdated()).toBe(1_000);
   });
 
   it('should report error status when RatesService.status is error', fakeAsync(() => {
@@ -320,10 +332,87 @@ describe('RealtimeService', () => {
       ratesService.status.set('error');
     });
     service = createService();
+    service.start();
 
     tick(0);
 
     expect(service.status()).toBe('error');
+
+    discardPeriodicTasks();
+  }));
+
+  it('should use default poll interval when ENV_TOKEN is not provided', fakeAsync(() => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RatesService, useValue: ratesService },
+        { provide: OnlineService, useValue: onlineService },
+      ],
+    });
+    service = TestBed.inject(RealtimeService);
+    service.start();
+
+    tick(0);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
+
+    discardPeriodicTasks();
+  }));
+
+  it('should pause on visibilitychange when document is hidden', fakeAsync(() => {
+    spyOnProperty(document, 'hidden', 'get').and.returnValue(true);
+    service = createService();
+    service.start();
+
+    tick(0);
+    expect(service.status()).toBe('paused');
+
+    document.dispatchEvent(new Event('visibilitychange'));
+    tick(0);
+    expect(service.status()).toBe('paused');
+  }));
+
+  it('should skip tick when a poll is already in flight', fakeAsync(() => {
+    ratesService.loadLatest.and.returnValue(new Promise<void>(() => undefined));
+    service = createService();
+    service.start();
+
+    tick(0);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
+    expect(service.status()).toBe('polling');
+
+    tick(env.pollInterval);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
+    expect(service.status()).toBe('polling');
+
+    service.ngOnDestroy();
+    discardPeriodicTasks();
+  }));
+
+  it('should pause on tick when the browser goes offline', fakeAsync(() => {
+    service = createService();
+    service.start();
+
+    tick(0);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
+
+    onlineService.online.set(false);
+    tick(env.pollInterval);
+
+    expect(service.status()).toBe('offline');
+
+    discardPeriodicTasks();
+  }));
+
+  it('should not start polling until start is called', fakeAsync(() => {
+    service = createService();
+
+    tick(0);
+    expect(ratesService.loadLatest).not.toHaveBeenCalled();
+    expect(service.status()).toBe('live');
+
+    service.start();
+    tick(0);
+    expect(ratesService.loadLatest).toHaveBeenCalledTimes(1);
 
     discardPeriodicTasks();
   }));

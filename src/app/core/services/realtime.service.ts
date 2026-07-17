@@ -16,10 +16,10 @@ export class RealtimeService implements OnDestroy {
   private readonly env = inject(ENV_TOKEN, { optional: true }) as EnvironmentConfig | null;
 
   readonly status = signal<RealtimeStatus>('live');
-  readonly lastUpdated$ = computed(() => this.rates.lastUpdated());
+  readonly lastUpdated = computed(() => this.rates.lastUpdated());
 
-  private baseInterval = this.env?.pollInterval ?? 60_000;
-  private currentInterval = this.baseInterval;
+  readonly BASE_INTERVAL = this.env?.pollInterval ?? 60_000;
+  private currentInterval = this.BASE_INTERVAL;
   private failureCount = 0;
   private consecutiveFailures = 0;
   private isPolling = false;
@@ -54,12 +54,19 @@ export class RealtimeService implements OnDestroy {
       window.addEventListener('online', this.onOnline);
       window.addEventListener('offline', this.onOffline);
     }
+  }
 
+  start(): void {
     this.resubscribeTimer(false);
   }
 
-  ngOnDestroy(): void {
+  stop(): void {
     this.timerSubscription?.unsubscribe();
+    this.timerSubscription = undefined;
+  }
+
+  ngOnDestroy(): void {
+    this.stop();
 
     if (typeof document !== 'undefined') {
       document.removeEventListener('visibilitychange', this.onVisibilityChange);
@@ -80,7 +87,7 @@ export class RealtimeService implements OnDestroy {
 
     this.failureCount = 0;
     this.consecutiveFailures = 0;
-    this.currentInterval = this.baseInterval;
+    this.currentInterval = this.BASE_INTERVAL;
     this.pendingRefresh = false;
     this.resubscribeTimer(false);
   }
@@ -127,7 +134,7 @@ export class RealtimeService implements OnDestroy {
   private handleSuccess(): void {
     this.failureCount = 0;
     this.consecutiveFailures = 0;
-    this.currentInterval = this.baseInterval;
+    this.currentInterval = this.BASE_INTERVAL;
     this.status.set('live');
     this.resubscribeTimer(true);
   }
@@ -138,7 +145,7 @@ export class RealtimeService implements OnDestroy {
     this.status.set(status);
 
     if (this.consecutiveFailures >= 5) {
-      this.baseInterval = Math.min(this.baseInterval * 2, 5 * 60 * 1000);
+      this.currentInterval = Math.min(this.currentInterval * 2, 5 * 60 * 1000);
       this.consecutiveFailures = 0;
     }
 

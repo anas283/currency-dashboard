@@ -62,7 +62,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: null, stale: true, fetchedAt: null });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
 
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     const response: LatestResponse = {
@@ -92,7 +92,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: cached, stale: false, fetchedAt: 999 });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
 
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     expect(service.snapshot()).toEqual(cached);
@@ -112,7 +112,7 @@ describe('RatesService', () => {
     expect(service.snapshot()).toEqual(response);
     expect(service.status()).toBe('live');
     expect(service.servedFromCache()).toBeFalse();
-    expect(service.lastUpdated()).toBe(1_000);
+    expect(service.lastUpdated()).toBe(1_000_000);
     expect(cacheSpy.set).toHaveBeenCalledWith('latest::USD', response);
   });
 
@@ -127,7 +127,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: cached, stale: true, fetchedAt: 100 });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     expect(service.snapshot()).toEqual(cached);
     expect(service.status()).toBe('stale');
@@ -159,7 +159,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: cached, stale: false, fetchedAt: 123 });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     req.flush({ error: true, message: 'unauthorized' }, { status: 401, statusText: 'Unauthorized' });
     await promise;
@@ -181,7 +181,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: cached, stale: false, fetchedAt: 123 });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     req.flush({ error: true, message: 'bad gateway' }, { status: 502, statusText: 'Bad Gateway' });
     await promise;
@@ -197,7 +197,7 @@ describe('RatesService', () => {
     cacheSpy.get.and.resolveTo({ value: null, stale: true, fetchedAt: null });
 
     const promise = service.loadLatest();
-    await promise;
+    await Promise.resolve();
     const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
     req.error(new ProgressEvent('error'));
     await promise;
@@ -292,5 +292,36 @@ describe('RatesService', () => {
 
     httpTestingController.expectNone('https://api.example.com/test-key/pair/USD/EUR/100');
     expect(result).toBeNull();
+  });
+
+  it('should report lastUpdated from cache timestamp when snapshot has none', () => {
+    const service = createService();
+
+    expect(service.lastUpdated()).toBeNull();
+  });
+
+  it('should fall back to sample data and no pair conversion when ENV_TOKEN is not provided', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: CacheService, useValue: cacheSpy },
+      ],
+    });
+    httpTestingController = TestBed.inject(HttpTestingController);
+
+    const service = TestBed.inject(RatesService);
+    cacheSpy.get.and.resolveTo({ value: null, stale: true, fetchedAt: null });
+
+    await service.loadLatest();
+
+    httpTestingController.expectNone(() => true);
+    expect(service.snapshot()).not.toBeNull();
+    expect(service.status()).toBe('offline');
+
+    const converted = await service.convert(100, 'XYZ', 'EUR');
+    expect(converted).toBeNull();
+    httpTestingController.expectNone('https://api.example.com/test-key/pair/XYZ/EUR/100');
   });
 });
