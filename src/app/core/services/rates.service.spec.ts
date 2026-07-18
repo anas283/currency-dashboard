@@ -51,7 +51,7 @@ describe('RatesService', () => {
     const service = createService();
 
     expect(service).toBeTruthy();
-    expect(service.base()).toBe('USD');
+    expect(service.base()).toBe('MYR');
     expect(service.snapshot()).toBeNull();
     expect(service.status()).toBe('live');
     expect(service.servedFromCache()).toBeFalse();
@@ -64,7 +64,7 @@ describe('RatesService', () => {
     const promise = service.loadLatest();
     await Promise.resolve();
 
-    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
+    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/MYR');
     const response: LatestResponse = {
       base_code: 'USD',
       conversion_rates: { USD: 1, EUR: 0.92 },
@@ -78,7 +78,7 @@ describe('RatesService', () => {
     expect(service.snapshot()).toEqual(response);
     expect(service.status()).toBe('live');
     expect(service.servedFromCache()).toBeFalse();
-    expect(cacheSpy.set).toHaveBeenCalledWith('latest::USD', response);
+    expect(cacheSpy.set).toHaveBeenCalledWith('latest::MYR', response);
   });
 
   it('should serve fresh cache then refresh from API on success', async () => {
@@ -94,7 +94,7 @@ describe('RatesService', () => {
     const promise = service.loadLatest();
     await Promise.resolve();
 
-    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
+    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/MYR');
     expect(service.snapshot()).toEqual(cached);
     expect(service.status()).toBe('live');
     expect(service.servedFromCache()).toBeTrue();
@@ -113,7 +113,7 @@ describe('RatesService', () => {
     expect(service.status()).toBe('live');
     expect(service.servedFromCache()).toBeFalse();
     expect(service.lastUpdated()).toBe(1_000_000);
-    expect(cacheSpy.set).toHaveBeenCalledWith('latest::USD', response);
+    expect(cacheSpy.set).toHaveBeenCalledWith('latest::MYR', response);
   });
 
   it('should serve stale cache then refresh from API on success', async () => {
@@ -128,7 +128,7 @@ describe('RatesService', () => {
 
     const promise = service.loadLatest();
     await Promise.resolve();
-    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
+    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/MYR');
     expect(service.snapshot()).toEqual(cached);
     expect(service.status()).toBe('stale');
     expect(service.servedFromCache()).toBeTrue();
@@ -160,7 +160,7 @@ describe('RatesService', () => {
 
     const promise = service.loadLatest();
     await Promise.resolve();
-    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
+    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/MYR');
     req.flush({ error: true, message: 'unauthorized' }, { status: 401, statusText: 'Unauthorized' });
     await promise;
 
@@ -182,7 +182,7 @@ describe('RatesService', () => {
 
     const promise = service.loadLatest();
     await Promise.resolve();
-    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
+    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/MYR');
     req.flush({ error: true, message: 'bad gateway' }, { status: 502, statusText: 'Bad Gateway' });
     await promise;
 
@@ -198,7 +198,7 @@ describe('RatesService', () => {
 
     const promise = service.loadLatest();
     await Promise.resolve();
-    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/USD');
+    const req = httpTestingController.expectOne('https://api.example.com/test-key/latest/MYR');
     req.error(new ProgressEvent('error'));
     await promise;
 
@@ -217,7 +217,7 @@ describe('RatesService', () => {
 
     httpTestingController.expectNone('https://api.example.com/test-key/latest/USD');
     expect(service.snapshot()).not.toBeNull();
-    expect(service.snapshot()?.base_code).toBe('USD');
+    expect(service.snapshot()?.base_code).toBe('MYR');
     expect(service.status()).toBe('offline');
     expect(service.servedFromCache()).toBeFalse();
   });
