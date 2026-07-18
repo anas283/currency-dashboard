@@ -12,13 +12,13 @@
 
 .nav-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--sp-xl);
+  gap: var(--sp-md) var(--sp-xl);
   background-color: var(--color-canvas);
   color: var(--color-ink);
   padding: var(--sp-md) var(--sp-xl);
   border-bottom: 1px solid var(--color-canvas-soft);
-  overflow-x: auto;
 
   &__brand {
     display: inline-flex;

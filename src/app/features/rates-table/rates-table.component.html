@@ -88,8 +88,8 @@
               <span class="rates-table__code">{{ row.code }}</span>
               <span class="rates-table__name">{{ row.name }}</span>
             </td>
-            <td>{{ row.rate | number: '1.0-6' }}</td>
-            <td class="rates-table__delta-col">
+            <td data-label="Rate">{{ row.rate | number: '1.0-6' }}</td>
+            <td class="rates-table__delta-col" data-label="Change">
               @if (row.delta === null) {
                 <span class="rates-table__delta rates-table__delta--flat">—</span>
               } @else if (row.delta > 0) {
@@ -100,7 +100,7 @@
                 <span class="rates-table__delta rates-table__delta--flat">0.00%</span>
               }
             </td>
-            <td class="rates-table__base-col">{{ row.base }}</td>
+            <td class="rates-table__base-col" data-label="Base">{{ row.base }}</td>
           </tr>
         }
       </tbody>

@@ -131,6 +131,66 @@
     white-space: nowrap;
   }
 
+  // Below 767px the table can't fit Currency/Rate/Change side by side without
+  // forcing the whole page to scroll horizontally. Header stays a wrapping
+  // row of sort controls (decoupled from row width, so sorting still works);
+  // body rows become stacked cards with inline data-labels standing in for
+  // the now-hidden column headers.
+  @media (max-width: 767px) {
+    &__table {
+      display: block;
+    }
+
+    &__table thead {
+      display: block;
+    }
+
+    &__table thead tr {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: var(--sp-lg);
+      row-gap: var(--sp-xs);
+    }
+
+    &__table thead th:not(&__base-col) {
+      display: block;
+      padding: 0 0 var(--sp-sm);
+      border-bottom: none;
+    }
+
+    &__table tbody {
+      display: block;
+    }
+
+    &__row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-xs);
+      padding: var(--sp-md) 0;
+    }
+
+    &__row td:not(&__base-col) {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0;
+      width: auto;
+    }
+
+    &__row td[data-label]::before {
+      content: attr(data-label);
+      font: var(--text-caption);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-mute);
+    }
+
+    &__row td:first-child {
+      display: block;
+    }
+  }
+
   &__delta {
     display: inline-flex;
     align-items: center;
@@ -175,6 +235,14 @@
     color: inherit;
     cursor: pointer;
     transition: background-color 0.15s ease, color 0.15s ease;
+
+    // Header labels double as tap-to-sort controls; below 767px they're
+    // touch targets, not just mouse-hover labels, so they need real height.
+    @media (max-width: 767px) {
+      min-height: 2.75rem;
+      margin: 0 calc(-1 * var(--sp-sm));
+      padding: 0 var(--sp-sm);
+    }
   }
 
   .sort-header__button:hover {
