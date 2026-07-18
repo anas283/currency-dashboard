@@ -1,6 +1,7 @@
 # Currency Exchange Rate Dashboard
 
 Live demo: <https://anas283.github.io/currency-dashboard/>
+Staging: <https://anas283.github.io/currency-dashboard/staging/>
 
 A real-time Currency Exchange Rate Dashboard built with Angular 22.
 It shows sortable exchange rates, historical trend charts, a currency
