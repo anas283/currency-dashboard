@@ -16,7 +16,7 @@ export class RatesService {
   private readonly env = inject(ENV_TOKEN, { optional: true }) as EnvironmentConfig | null;
 
   readonly snapshot = signal<LatestResponse | null>(null);
-  readonly base = signal<string>('USD');
+  readonly base = signal<string>('MYR');
   readonly servedFromCache = signal<boolean>(false);
   readonly status = signal<'live' | 'stale' | 'offline' | 'error'>('live');
 

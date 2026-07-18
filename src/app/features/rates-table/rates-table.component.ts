@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 
@@ -44,6 +53,8 @@ export class RatesTableComponent {
   private readonly router = inject(Router);
   private readonly cache = inject(CacheService);
 
+  private readonly baseSelect = viewChild<ElementRef<HTMLSelectElement>>('baseSelect');
+
   readonly search = signal('');
   readonly sortKey = signal<string>('code');
   readonly sortDirection = signal<SortDirection>('none');
@@ -66,6 +77,18 @@ export class RatesTableComponent {
           this.previousRates.set(entry.value.conversion_rates);
         }
       });
+    });
+
+    // Native <select> loses its selection when its <option>s are swapped out
+    // (curated 30 -> full API list once the snapshot loads); Angular's [value]
+    // binding won't re-push an unchanged value, so re-sync the DOM manually.
+    effect(() => {
+      const base = this.ratesService.base();
+      this.baseOptions();
+      const select = this.baseSelect()?.nativeElement;
+      if (select) {
+        select.value = base;
+      }
     });
   }
 

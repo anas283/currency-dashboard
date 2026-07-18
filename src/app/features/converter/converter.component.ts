@@ -30,9 +30,9 @@ import { TextInputComponent } from '../../ui/text-input/text-input.component';
 export class ConverterComponent {
   readonly ratesService = inject(RatesService);
 
-  readonly amount = signal<number>(1);
-  readonly from = signal<string>('USD');
-  readonly to = signal<string>('EUR');
+  readonly amount = signal<number>(1000);
+  readonly from = signal<string>('MYR');
+  readonly to = signal<string>('USD');
 
   readonly options = computed<Currency[]>(() => {
     const base = this.ratesService.base();
