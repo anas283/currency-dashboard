@@ -1,6 +1,6 @@
 # Currency Exchange Rate Dashboard
 
-Live demo: <https://anas.github.io/currency-dashboard>
+Live demo: <https://anas283.github.io/currency-dashboard/>
 
 A real-time Currency Exchange Rate Dashboard built with Angular 22.
 It shows sortable exchange rates, historical trend charts, a currency
@@ -24,7 +24,7 @@ converter, offline support, and light/dark theming.
 ## Getting Started
 
 ```bash
-git clone https://github.com/anas/currency-dashboard.git
+git clone https://github.com/anas283/currency-dashboard.git
 cd currency-dashboard
 npm install
 npm start
