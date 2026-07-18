@@ -1,0 +1,160 @@
+╭─── Claude Code v2.1.214 ─────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                 Welcome back Anas!                 │ started                 │
+│                                                    │ Run /init to create a … │
+│                      ▗ ▗   ▖ ▖                     │ ─────────────────────── │
+│                                                    │ What's new              │
+│                        ▘▘ ▝▝                       │ Fixed single-segment `… │
+│    Sonnet 5 · Claude Pro ·                         │ Fixed a permission-che… │
+│    muhammadanasbinadam@gmail.com's Organization    │ Fixed Bash permission … │
+│       ~/Desktop/interview/currency-dashboard       │ /release-notes for more │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+❯ create a real `staging` branch and CI/CD workflow for this Angular project,   
+  separate from the existing `main` production pipeline                         
+
+⏺ Check current setup first.
+
+  Read 3 files, listed 1 directory, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Write(src/environments/environment.staging.ts)
+  ⎿  Wrote 8 lines to src/environments/environment.staging.ts
+      1 import { EnvironmentConfig } from '../app/core/tokens/env.token';
+      2 
+      3 export const environment: EnvironmentConfig = {
+      4   apiBase: 'https://v6.exchangerate-api.com/v6',
+      5   apiKey: '${EXCHANGERATE_API_KEY}',
+      6   pollInterval: 60_000,
+      7   staleThreshold: 300_000,
+      8 };
+
+⏺ Now wire staging config into angular.json and package.json.
+
+⏺ Update(angular.json)
+  ⎿  Added 26 lines
+       90                  }
+       91                ]
+       92              },
+       93 +            "staging": {                                      
+       94 +              "budgets": [                                    
+       95 +                {                                             
+       96 +                  "type": "initial",                          
+       97 +                  "maximumWarning": "300kb"                   
+       98 +                },                                            
+       99 +                {                                             
+      100 +                  "type": "anyComponentStyle",                
+      101 +                  "maximumWarning": "8kb"                     
+      102 +                },                                            
+      103 +                {                                             
+      104 +                  "type": "any",                              
+      105 +                  "maximumWarning": "300kb"                   
+      106 +                }                                             
+      107 +              ],                                              
+      108 +              "outputHashing": "all",                         
+      109 +              "fileReplacements": [                           
+      110 +                {                                             
+      111 +                  "replace": "src/environments/environment.ts"
+          +,                                                             
+      112 +                  "with": "src/environments/environment.stagin
+          +g.ts"                                                         
+      113 +                }                                             
+      114 +              ]                                               
+      115 +            },                                                
+      116              "development": {
+      117                "optimization": false,
+      118                "extractLicenses": false,
+     ...
+      133              "production": {
+      134                "buildTarget": "currency-dashboard:build:product
+           ion"
+      135              },
+      136 +            "staging": {                                      
+      137 +              "buildTarget": "currency-dashboard:build:staging
+          +"                                                             
+      138 +            },                                                
+      139              "development": {
+      140                "buildTarget": "currency-dashboard:build:develop
+           ment"
+      141              }
+
+⏺ Update(package.json)
+  ⎿  Added 1 line
+       5      "ng": "ng",
+       6      "start": "ng serve",
+       7      "build": "ng build --configuration production",
+       8 +    "build:staging": "ng build --configuration staging",       
+       9      "test": "ng test --watch=false && node scripts/check-catego
+          ry-coverage.js",
+      10      "test:watch": "ng test",
+      11      "lint": "ng lint",
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(package.json)
+  ⎿  Added 1 line
+      13      "serve": "http-server dist/currency-dashboard/browser -p 42
+          00 --proxy http://localhost:4200?",
+      14      "cypress:run": "cypress run",
+      15      "e2e": "npm run build && start-server-and-test serve http:/
+          /localhost:4200 cypress:run",
+      16 +    "e2e:staging": "npm run build:staging && start-server-and-t
+         +est serve http://localhost:4200 cypress:run",                  
+      17      "verify": "npm run lint && npm run typecheck && npm test &&
+           npm run e2e"
+      18    },
+      19    "private": true,
+
+⏺ Now the staging CI workflow file:
+
+⏺ Write(.github/workflows/ci-staging.yml)
+  ⎿  Wrote 70 lines to .github/workflows/ci-staging.yml
+       1 name: CI Staging
+       2 
+       3 on:
+       4   push:
+       5     branches: [staging]
+       6   pull_request:
+       7     branches: [staging]
+       8 
+       9 jobs:
+      10   build:
+     … +63 lines (ctrl+o to expand)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ User answered Claude's questions:
+  ⎿  · Commit CI/staging config on feature/dashboard, branch staging off it, 
+     push both to origin now? → Yes, push now (Recommended)
+
+  Committed d68abce, pushed to feature/dashboard, ran 1 shell command (ctrl+o to expand)
+
+⏺ Pushed. Back to feature/dashboard.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Done. Setup:
+
+  Branch: staging created off feature/dashboard tip, pushed to origin.
+
+  Files added/changed:
+  - src/environments/environment.staging.ts — placeholder
+  ${EXCHANGERATE_API_KEY}, swapped by CI sed
+  - angular.json — new staging build/serve configuration
+  - package.json — build:staging, e2e:staging scripts
+  - .github/workflows/ci-staging.yml — separate pipeline, triggers only on
+  staging branch push/PR
+
+  Staging pipeline: lint → typecheck → test → e2e (staging config) → build →
+  deploy. Deploy job pushes to gh-pages branch under /staging subpath
+  (destination_dir: staging, keep_files: true so prod deploy at root untouched).
+
+  You need to set up in GitHub repo settings (not automatable from here):
+  1. New environment github-pages-staging
+  2. Secret STAGING_EXCHANGERATE_API_KEY (can reuse same API key value as prod)
+
+  Staging site will land at
+  https://anas283.github.io/currency-dashboard/staging/ after first
+  push-triggered deploy.
+
+✻ Crunched for 2m 6s
