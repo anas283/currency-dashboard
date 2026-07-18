@@ -47,14 +47,18 @@ export class ConverterComponent {
 
   readonly resultValue = signal<number | null>(null);
 
+  private conversionRequestId = 0;
+
   constructor() {
     effect(() => {
       const amount = this.amount();
       const from = this.from();
       const to = this.to();
       this.ratesService.snapshot();
+
+      const requestId = ++this.conversionRequestId;
       this.ratesService.convert(amount, from, to).then((value) => {
-        if (amount === this.amount() && from === this.from() && to === this.to()) {
+        if (requestId === this.conversionRequestId) {
           this.resultValue.set(value);
         }
       });
