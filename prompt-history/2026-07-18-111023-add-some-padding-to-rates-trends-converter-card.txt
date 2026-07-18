@@ -1,0 +1,698 @@
+╭─── Claude Code v2.1.214 ─────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                 Welcome back Anas!                 │ started                 │
+│                                                    │ Run /init to create a … │
+│                      ▗ ▗   ▖ ▖                     │ ─────────────────────── │
+│                                                    │ What's new              │
+│                        ▘▘ ▝▝                       │ Fixed single-segment `… │
+│    Sonnet 5 · Claude Pro ·                         │ Fixed a permission-che… │
+│    muhammadanasbinadam@gmail.com's Organization    │ Fixed Bash permission … │
+│       ~/Desktop/interview/currency-dashboard       │ /release-notes for more │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+❯ add some padding to rates, trends, converter card content. refer to dashboard 
+  ui                                                                            
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+⏺ Angular app. Check card content areas in each scss/html plus dashboard card
+  baseline for reference padding.
+
+  Searched for 2 patterns, read 4 files (ctrl+o to expand)
+
+⏺ Also uses card variant=content with sp-xl padding. Now the converter
+  component.
+
+  Searched for 4 patterns, read 5 files, listed 1 directory, ran 1 shell command (ctrl+o to expand)
+
+⏺ Let me look at app live to see actual spacing issue.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Dev server already up. Screenshot dashboard.
+
+⏺ Skill(playwright-cli)
+  ⎿  Successfully loaded skill · 3 tools allowed
+
+  Searched for 3 patterns, read 2 files, ran 6 shell commands (ctrl+o to expand)
+
+⏺ Card content padding: content variant 24px, currency-converter variant only
+  16px — inconsistent, cramped next to page gutter (also 24px). Bumping both to
+  --sp-2xl (32px) for real breathing room, matching dashboard scale.
+
+⏺ Update(src/app/ui/card/card.component.scss)
+  ⎿  Added 1 line, removed 1 line
+      1  .card {
+      2    border-radius: var(--rd-xl);
+      3 -  padding: var(--sp-xl);                                        
+      3 +  padding: var(--sp-2xl);                                       
+      4    font: var(--text-body-md);
+      5  
+      6    &--content {
+
+⏺ Update(src/app/ui/card/card.component.scss)
+  ⎿  Added 1 line, removed 1 line
+      28    &--currency-converter {
+      29      background-color: var(--color-canvas);
+      30      color: var(--color-ink);
+      31 -    padding: var(--sp-lg);                                     
+      31 +    padding: var(--sp-2xl);                                    
+      32      border: 1px solid var(--color-canvas-soft);
+      33      box-shadow: var(--shadow-card);
+      34    }
+
+⏺ Verify in browser, all three views.
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+⏺ Good — more breathing room, no overflow. Check trends/converter routes and
+  mobile width too.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Good padding all around now. Quick mobile check for overflow regressions.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ No overflow at 375px. Padding fix confirmed working across widths.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ No overflow anywhere. Close browser.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Bumped .card and .card--currency-converter padding sp-xl/sp-lg → sp-2xl (32px)
+  in card.component.scss:3,31 — was inconsistent (24px vs 16px) and cramped
+  next to page's 24px gutter. Verified desktop + 375px mobile, no overflow
+  regressions.
+
+✻ Sautéed for 2m 57s
+
+❯ add margin to card to match dashboard                                         
+
+  Searched for 4 patterns, read 3 files (ctrl+o to expand)
+
+⏺ Standalone routes (Rates/Trends/Converter) render bare component with zero
+  outer margin — only Home wraps in .home with padding: var(--sp-xl) + centered
+  max-width. Moving that inset to the shared app-shell__main so every route
+  matches dashboard framing.
+
+⏺ Update(src/app/app.component.scss)
+  ⎿  Added 5 lines
+      11  
+      12  .app-shell__main {
+      13    flex: 1 0 auto;
+      14 +  box-sizing: border-box;                                      
+      15 +  width: 100%;                                                 
+      16 +  max-width: 90rem;                                            
+      17 +  padding: var(--sp-xl);                                       
+      18 +  margin-inline: auto;                                         
+      19  }
+
+⏺ Now strip the now-duplicated inset from .home so dashboard doesn't get double
+  padding.
+
+⏺ Update(src/app/features/home/home.component.scss)
+  ⎿  Removed 3 lines
+       5  .home {
+       6    display: grid;
+       7    gap: var(--sp-xl);
+       8 -  padding: var(--sp-xl);                                       
+       9 -  max-width: 90rem;                                            
+      10 -  margin-inline: auto;                                         
+       8  }
+       9  
+      10  .home__sidebar {
+
+⏺ Verify live.
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Dashboard unchanged (no double-padding). Now check standalone routes.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Matches dashboard inset now. Check mobile no overflow, then close.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ No overflow at 375px, mobile fine.
+
+  Moved inset/max-width from .home to app-shell__main (app.component.scss:12) —
+  standalone Rates/Trends/Converter routes now get same 24px margin + centered
+  max-width as Dashboard, instead of sitting edge-to-edge. .home kept only
+  grid/gap. Dashboard unaffected (no double padding).
+
+✻ Baked for 1m 28s
+
+❯ [Image #1] fix dropdown arrow to align with text and add spacing in between   
+  ⎿  [Image #1]
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Native <select> — long text runs into native arrow with zero gap. Adding
+  ellipsis truncation + custom chevron with fixed right padding so arrow never
+  collides with text, regardless of length.
+
+⏺ Update(src/app/features/converter/converter.component.scss)
+  ⎿  Added 10 lines, removed 1 line
+      26      width: 100%;
+      27      min-height: 2.75rem;
+      28      box-sizing: border-box;
+      29 -    padding: var(--sp-sm) var(--sp-md);                        
+      29 +    padding: var(--sp-sm) calc(var(--sp-xl) + var(--sp-md)) var
+         +(--sp-sm) var(--sp-md);                                        
+      30      border: 1px solid var(--color-ink);
+      31      border-radius: var(--rd-md);
+      32      background-color: var(--color-canvas);
+      33      color: var(--color-ink);
+      34      font: var(--text-body-md);
+      35 +    overflow: hidden;                                          
+      36 +    text-overflow: ellipsis;                                   
+      37 +    white-space: nowrap;                                       
+      38 +    appearance: none;                                          
+      39 +    -webkit-appearance: none;                                  
+      40 +    background-image: url("data:image/svg+xml,%3Csvg xmlns='htt
+         +p://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 
+         +8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23161
+         +616' stroke-width='1.5' stroke-linecap='round' stroke-linejoin=
+         +'round'/%3E%3C/svg%3E");                                       
+      41 +    background-repeat: no-repeat;                              
+      42 +    background-position: right var(--sp-md) center;            
+      43 +    background-size: 12px 8px;                                 
+      44    }
+      45  
+      46    &__swap-row {
+
+⏺ Now the rates-table Base select (same native-select issue, smaller risk but
+  same fix for consistency).
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 10 lines, removed 1 line
+      33      box-sizing: border-box;
+      34      border: 1px solid var(--color-ink);
+      35      border-radius: var(--rd-md);
+      36 -    padding: var(--sp-md) var(--sp-lg);                        
+      36 +    padding: var(--sp-md) calc(var(--sp-xl) + var(--sp-md)) var
+         +(--sp-md) var(--sp-lg);                                        
+      37      background-color: var(--color-canvas);
+      38      color: var(--color-ink);
+      39      font: var(--text-body-md);
+      40      cursor: pointer;
+      41 +    overflow: hidden;                                          
+      42 +    text-overflow: ellipsis;                                   
+      43 +    white-space: nowrap;                                       
+      44 +    appearance: none;                                          
+      45 +    -webkit-appearance: none;                                  
+      46 +    background-image: url("data:image/svg+xml,%3Csvg xmlns='htt
+         +p://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 
+         +8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23161
+         +616' stroke-width='1.5' stroke-linecap='round' stroke-linejoin=
+         +'round'/%3E%3C/svg%3E");                                       
+      47 +    background-repeat: no-repeat;                              
+      48 +    background-position: right var(--sp-lg) center;            
+      49 +    background-size: 12px 8px;                                 
+      50  
+      51      &:focus {
+      52        outline: 2px solid var(--color-primary);
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+⏺ Update(src/styles/_theme.scss)
+  ⎿  Added 1 line
+      22    --color-accent-orange: #ffc091;
+      23    --color-accent-cyan: #38c8ff;
+      24    --shadow-card: 0 1px 2px rgba(14, 15, 12, 0.05), 0 12px 28px 
+          -8px rgba(14, 15, 12, 0.16);
+      25 +  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://
+         +www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' f
+         +ill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%230e0f0c'
+         + stroke-width='1.5' stroke-linecap='round' stroke-linejoin='rou
+         +nd'/%3E%3C/svg%3E");                                           
+      26  }
+      27  
+      28  [data-theme="dark"] {
+
+⏺ Update(src/styles/_theme.scss)
+  ⎿  Added 1 line
+      49    --color-accent-orange: #ffc091;
+      50    --color-accent-cyan: #38c8ff;
+      51    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -8px
+           rgba(0, 0, 0, 0.55);
+      52 +  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://
+         +www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' f
+         +ill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23f5f5f5'
+         + stroke-width='1.5' stroke-linecap='round' stroke-linejoin='rou
+         +nd'/%3E%3C/svg%3E");                                           
+      53  }
+
+⏺ Now swap the hardcoded SVGs in both components for the theme var.
+
+⏺ Update(src/app/features/converter/converter.component.scss)
+  ⎿  Added 1 line, removed 1 line
+      37      white-space: nowrap;
+      38      appearance: none;
+      39      -webkit-appearance: none;
+      40 -    background-image: url("data:image/svg+xml,%3Csvg xmlns='htt
+         -p://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 
+         -8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23161
+         -616' stroke-width='1.5' stroke-linecap='round' stroke-linejoin=
+         -'round'/%3E%3C/svg%3E");                                       
+      40 +    background-image: var(--select-arrow);                     
+      41      background-repeat: no-repeat;
+      42      background-position: right var(--sp-md) center;
+      43      background-size: 12px 8px;
+
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 1 line, removed 1 line
+      43      white-space: nowrap;
+      44      appearance: none;
+      45      -webkit-appearance: none;
+      46 -    background-image: url("data:image/svg+xml,%3Csvg xmlns='htt
+         -p://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 
+         -8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23161
+         -616' stroke-width='1.5' stroke-linecap='round' stroke-linejoin=
+         -'round'/%3E%3C/svg%3E");                                       
+      46 +    background-image: var(--select-arrow);                     
+      47      background-repeat: no-repeat;
+      48      background-position: right var(--sp-lg) center;
+      49      background-size: 12px 8px;
+
+⏺ Verify live, both themes.
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Text now truncates with ellipsis, arrow has clean gap. Check dark theme.
+
+  Read 1 file, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Arrow visible white in dark mode, proper gap, text ellipsized. Close browser.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Fixed: native <select> had zero gap between text and default browser arrow,
+  causing text to run into it. Changes:
+
+  - converter.component.scss:25 / rates-table.component.scss select rules —
+  reserved fixed right padding for arrow, added text-overflow: ellipsis so long
+  option text truncates instead of colliding, replaced native arrow with custom
+  chevron (appearance: none + SVG background) at consistent --sp-md/--sp-lg gap.
+  - _theme.scss — added --select-arrow token (light/dark ink-colored SVG) so
+  chevron stays visible in both themes instead of hardcoding one color.
+
+  Verified light + dark, no truncation collision.
+
+✻ Crunched for 1m 42s
+
+❯ fix the arrow in currency, rate, base dropdown in table. update "CHANGE" text 
+  to capitalize                                                                 
+
+  Searched for 3 patterns, read 5 files, ran 6 shell commands (ctrl+o to expand)
+
+⏺ Fix "Change" header case — match the actually-rendered case of the other
+  headers instead of full-caps.
+
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 4 lines
+      140      white-space: nowrap;
+      141    }
+      142  
+      143 +  &__table th.rates-table__delta-col {                        
+      144 +    text-transform: none;                                     
+      145 +  }                                                           
+      146 +                                                              
+      147    // Below 767px the table can't fit Currency/Rate/Change side
+            by side without
+      148    // forcing the whole page to scroll horizontally. Header sta
+           ys a wrapping
+      149    // row of sort controls (decoupled from row width, so sortin
+           g still works);
+⏺ Now fix the sort-indicator arrows — replace the low-sitting ⌄ glyph with a
+  centered CSS triangle and widen the gap to text.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/shared/directives/sort-header.directive.ts)
+  ⎿  Removed 6 lines
+      120        'aria-sort',
+      121        active ? ariaSortValue(direction) : 'none',
+      122      );
+      123 -                                                              
+      124 -    this.renderer.setProperty(                                
+      125 -      this.indicator,                                         
+      126 -      'textContent',                                          
+      127 -      active && direction !== 'none' ? (direction === 'asc' ? 
+          -'▲' : '▼') : '',                                              
+      128 -    );                                                        
+      123    }
+      124  }
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/shared/directives/sort-header.directive.ts)
+  ⎿  Added 6 lines
+      120        'aria-sort',
+      121        active ? ariaSortValue(direction) : 'none',
+      122      );
+      123 +                                                              
+      124 +    this.renderer.setProperty(                                
+      125 +      this.indicator,                                         
+      126 +      'textContent',                                          
+      127 +      active && direction !== 'none' ? (direction === 'asc' ? 
+          +'▲' : '▼') : '',                                              
+      128 +    );                                                        
+      129    }
+      130  }
+
+⏺ Reverted the directive change (would've broken existing tests). CSS-only fix
+  instead: replace the low-sitting ⌄ glyph with a centered CSS triangle for the
+  idle state, widen the text-to-arrow gap, and vertically center the active ▲/▼
+  glyphs.
+
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 1 line, removed 1 line
+      235    .sort-header__button {
+      236      display: inline-flex;
+      237      align-items: center;
+      238 -    gap: var(--sp-xs);                                        
+      238 +    gap: var(--sp-sm);                                        
+      239      margin: calc(-1 * var(--sp-xxs)) calc(-1 * var(--sp-sm));
+      240      appearance: none;
+      241      -webkit-appearance: none;
+
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 11 lines, removed 4 lines
+      265  
+      266    .sort-header__indicator {
+      267      display: inline-flex;
+      268 -    min-width: 0.75rem;                                       
+      269 -    font-size: 0.85em;                                        
+      268 +    align-items: center;                                      
+      269 +    justify-content: center;                                  
+      270 +    width: 0.75rem;                                           
+      271 +    line-height: 1;                                           
+      272    }
+      273  
+      274    .sort-header__indicator:empty::after {
+      273 -    content: '⌄';                                             
+      274 -    opacity: 0.25;                                            
+      275 +    content: '';                                              
+      276 +    width: 0;                                                 
+      277 +    height: 0;                                                
+      278 +    border-left: 4px solid transparent;                       
+      279 +    border-right: 4px solid transparent;                      
+      280 +    border-top: 5px solid currentColor;                       
+      281 +    opacity: 0.35;                                            
+      282      transition: opacity 0.15s ease;
+      283    }
+      284  
+
+⏺ Verify visually, both idle and active/sorted states.
+
+  Read 1 file, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Arrows now centered with clean gap, "Change" reads as normal case matching the
+  others. Now check active sort state (click Rate to sort).
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Active sort (▲) also centered and colored, gap consistent. Check dark theme +
+  mobile quickly, then run unit tests since I touched shared CSS.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ All 173 tests pass.
+
+  Fixed in rates-table.component.scss:
+  - Sort-header idle arrow: was a font glyph (⌄) that sat low/off-baseline —
+  replaced with a flex-centered CSS triangle, guaranteed alignment regardless of
+  font.
+  - Gap between header text and arrow: --sp-xs (4px) → --sp-sm (8px).
+  - Active sort glyphs (▲/▼) now also flex-centered via the same indicator rule.
+  - Change header: was forced uppercase via inherited th style while the other
+  sortable headers (Currency/Rate/Base) escape it through the button's UA reset
+  — added text-transform: none on th.rates-table__delta-col so it matches.
+
+✻ Brewed for 3m 56s
+
+❯ [Image #2] fix ui overlap between filter and table when scrolling             
+  ⎿  [Image #2]
+
+  Searched for 1 pattern, read 3 files, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Root cause: rates-table__controls sticky top is a hardcoded 4.5rem guess at
+  nav-bar height, but nav-bar wraps to a taller 2-line layout at some widths —
+  mismatch lets table rows bleed through the gap/overlap. Fixing by making
+  nav-bar publish its real height as a CSS var instead of guessing.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Two hardcoded spots. Add a live --nav-height CSS var from nav-bar via
+  ResizeObserver, then reference it in both.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/ui/nav-bar/nav-bar.component.ts)  ⎿  Added 3 lines
+       1  import {
+       2 +  AfterViewInit,                                               
+       3    ChangeDetectionStrategy,
+       4    Component,
+       5    computed,
+       6 +  ElementRef,                                                  
+       7    inject,
+       8 +  OnDestroy,                                                   
+       9    signal,
+      10  } from '@angular/core';
+      11  
+
+⏺ Update(src/app/ui/nav-bar/nav-bar.component.ts)
+  ⎿  Added 21 lines, removed 1 line
+      33    styleUrl: './nav-bar.component.scss',
+      34    changeDetection: ChangeDetectionStrategy.OnPush,
+      35  })
+      36 -export class NavBarComponent {                                 
+      36 +export class NavBarComponent implements AfterViewInit, OnDestro
+         +y {                                                            
+      37    protected readonly themeService = inject(ThemeService);
+      38    protected readonly realtimeService = inject(RealtimeService);
+      39    protected readonly links = signal<NavLink[]>([
+     ...
+      43      { label: 'Converter', path: '/converter' },
+      44    ]);
+      45  
+      46 +  private readonly elementRef = inject(ElementRef<HTMLElement>)
+         +;                                                              
+      47 +  private resizeObserver: ResizeObserver | null = null;        
+      48 +                                                               
+      49 +  ngAfterViewInit(): void {                                    
+      50 +    const setNavHeight = () => {                               
+      51 +      document.documentElement.style.setProperty(              
+      52 +        '--nav-height',                                        
+      53 +        `${this.elementRef.nativeElement.offsetHeight}px`,     
+      54 +      );                                                       
+      55 +    };                                                         
+      56 +                                                               
+      57 +    this.resizeObserver = new ResizeObserver(setNavHeight);    
+      58 +    this.resizeObserver.observe(this.elementRef.nativeElement);
+      59 +    setNavHeight();                                            
+      60 +  }                                                            
+      61 +                                                               
+      62 +  ngOnDestroy(): void {                                        
+      63 +    this.resizeObserver?.disconnect();                         
+      64 +  }                                                            
+      65 +                                                               
+      66    protected readonly lastUpdatedLabel = computed<string | null>
+          (() => {
+      67      const timestamp = this.realtimeService.lastUpdated();
+      68      if (timestamp === null) {
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ Update(src/styles/_tokens.scss)
+  ⎿  Added 4 lines
+      1  :root {
+      2 +  // Layout — overwritten with the live measured value by NavBar
+        +Component;                                                      
+      3 +  // this is only the pre-hydration/no-JS fallback.             
+      4 +  --nav-height: 4.5rem;                                         
+      5 +                                                                
+      6    // Brand & accent
+      7    --color-primary: #9fe870;
+      8    --color-on-primary: #0e0f0c;
+
+⏺ Now swap the two hardcoded 4.5rem sticky offsets for var(--nav-height).
+
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 1 line, removed 1 line
+       5      align-items: flex-end;
+       6      gap: var(--sp-lg);
+       7      position: sticky;
+       8 -    top: calc(4.5rem + var(--sp-lg));                          
+       8 +    top: calc(var(--nav-height) + var(--sp-lg));               
+       9      z-index: 10;
+      10      background-color: var(--color-canvas);
+      11      padding-bottom: var(--sp-lg);
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/features/home/home.component.scss)
+  ⎿  Added 1 line, removed 1 line
+      25  
+      26    .home__sidebar {
+      27      position: sticky;
+      28 -    top: calc(4.5rem + var(--sp-lg));                          
+      28 +    top: calc(var(--nav-height) + var(--sp-lg));               
+      29    }
+      30  }
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Now matches real height (95px vs old hardcoded 72px). Reproduce the scroll
+  overlap.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Try narrower width matching user's screenshot (nav wraps harder) and scroll
+  through the sticky transition.
+
+  Ran 3 shell commands (ctrl+o to expand)
+
+⏺ Good, still matches (95px = 95px). Scroll through boundary to confirm no
+  gap/overlap frame.
+
+  Read 2 files, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Clean, no gap or overlap — controls sit flush against nav, table rows scroll
+  cleanly underneath. Close browser and run tests.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ All 173 tests pass.
+
+  Root cause: rates-table__controls (and home__sidebar) had a hardcoded sticky 
+  top: 4.5rem guess at nav-bar height, but nav-bar wraps to a taller 2-line
+  layout at mid widths — the mismatch let table rows bleed through the gap
+  between nav and the stuck filter bar during scroll.
+
+  Fix — nav-bar now measures itself and publishes the real height instead of
+  relying on a guess:
+  - nav-bar.component.ts: ResizeObserver on the host sets --nav-height on
+  document.documentElement, updates live on wrap/resize.
+  - _tokens.scss: --nav-height: 4.5rem fallback for pre-hydration.
+  - rates-table.component.scss / home.component.scss: top: calc(4.5rem + ...) →
+  top: calc(var(--nav-height) + ...).
+
+  Verified no overlap across 700/850/900px widths through the full scroll
+  transition.
+
+✻ Churned for 3m 41s
+
+❯ [Image #3] the overlap issue seems still happening, verify with playwright    
+  ⎿  [Image #3]
+
+  Read 1 file, ran 8 shell commands (ctrl+o to expand)
+
+⏺ Extensive re-testing (1440px single-line nav, 900px/850px wrapped nav, scroll
+  transition) all show clean, no overlap — matches expected --nav-height calc
+  exactly. Checking if dev server actually picked up the SCSS changes (stale
+  build would explain user still seeing old behavior).
+
+  Ran 3 shell commands (ctrl+o to expand)
+⏺ Fine-grained scroll scan at the wrapped-nav width (900px) to catch any bad
+  transition frame, plus checking at a wider width matching the crop ratio.
+
+  Read 1 file, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Verified via playwright — cannot reproduce. Checked:
+
+  - Bundle confirms fix is live: main.js contains nav-height, zero leftover
+  4.5rem.
+  - --nav-height computes correctly at every width tested (1440px single-line
+  nav → 55px; 900px/850px wrapped nav → 95px), matching real
+  getBoundingClientRect().
+  - Scanned scroll positions 0–400px in 10px steps at 900px width (the
+  wrap-prone width) — controls sit flush under nav at every frame, no gap, no
+  bleed-through.
+  - Screenshots at 1440px and 900px both clean.
+
+  Your screenshot's row set (USD/GBP/JPY/AUD/CAD, same crop framing) is nearly
+  identical to the original bug report — looks like a stale tab/cached bundle,
+  not a live re-render. Hard-refresh (Cmd+Shift+R) and retest — if it still
+  overlaps after that, tell me the exact window width and I'll target that
+  specifically.
+
+✻ Worked for 3m 0s
+
+❯ hard refreshed, still overlaps. fix by removing padding top and let search    
+  currencies filter fill the top space                                          
+
+⏺ Different approach per your request: instead of computing a gap, pull the
+  controls bar up to cover the card's own top padding and let its own background
+  fill that space — no seam left for rows to show through.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 7 lines, removed 1 line
+       5      align-items: flex-end;
+       6      gap: var(--sp-lg);
+       7      position: sticky;
+       8 -    top: calc(var(--nav-height) + var(--sp-lg));               
+       8 +    top: var(--nav-height);                                    
+       9      z-index: 10;
+      10      background-color: var(--color-canvas);
+      11 +    // Pull up over the card's own top padding and re-add it as
+         + our own                                                       
+      12 +    // padding, so this bar's opaque background — not the card'
+         +s padding —                                                    
+      13 +    // is what covers the strip directly under the sticky nav. 
+         +Otherwise                                                      
+      14 +    // that strip is empty card padding and scrolled-past rows 
+         +show through.                                                  
+      15 +    margin-top: calc(-1 * var(--sp-2xl));                      
+      16 +    padding-top: var(--sp-2xl);                                
+      17      padding-bottom: var(--sp-lg);
+      18      margin-bottom: var(--sp-md);
+      19      border-bottom: 1px solid var(--color-canvas-soft);
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Top of page fine. Now scroll to reproduce the reported overlap zone.
+
+  Read 3 files, ran 5 shell commands (ctrl+o to expand)
+
+⏺ Clean, flush, no gap. Close and run tests.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ 173 tests pass. In rates-table.component.scss:2-19:
+
+  - top: calc(var(--nav-height) + var(--sp-lg)) → top: var(--nav-height) —
+  controls now sit flush against nav, no computed gap.
+  - Added margin-top: calc(-1 * var(--sp-2xl)) + padding-top: var(--sp-2xl) —
+  pulls the bar up over the card's own top padding and re-fills that space with
+  its own opaque background, so there's no empty padding strip for scrolled rows
+  to bleed through.
+
+  Verified across 900px (wrapped 2-line nav) and 1440px (single-line nav),
+  scanning scroll positions 0–400px — flush, no gap, no overlap at any point.
+
+✻ Cogitated for 3m 16s
+
+❯ /caveman:caveman-commit                                                       
+
+  Committed b1e943d, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Committed as b1e943d. Left .playwright-cli/ (tool session artifacts) and
+  prompt-history/*.txt untracked — didn't touch those, say if you want them
+  handled.
+
+✻ Sautéed for 37s
+
+❯ push it                                                                       
+
+  Pushed to feature/dashboard (ctrl+o to expand)
+
+⏺ Pushed to feature/dashboard.
+
+✻ Sautéed for 10s

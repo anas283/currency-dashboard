@@ -56,4 +56,5 @@ Thumbs.db
 /cypress/screenshots
 /cypress/downloads
 .playwright-mcp/
+.playwright-cli/
 /playwright-screenshots/
