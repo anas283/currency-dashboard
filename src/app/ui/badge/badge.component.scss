@@ -5,6 +5,11 @@
   padding: var(--sp-xs) var(--sp-md);
   font: var(--text-body-sm-strong);
 
+  @media (max-width: 767px) {
+    max-width: 100%;
+    white-space: normal;
+  }
+
   &--positive {
     background-color: var(--color-primary-pale);
     color: var(--color-positive-deep);

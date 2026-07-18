@@ -104,6 +104,17 @@
 }
 
 @media (max-width: 767px) {
+  .nav-bar__status {
+    flex-wrap: wrap;
+    row-gap: var(--sp-xs);
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .nav-bar__updated {
+    white-space: normal;
+  }
+
   .nav-bar__toggle {
     margin-inline-start: auto;
   }

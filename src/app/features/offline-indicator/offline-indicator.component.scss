@@ -4,6 +4,13 @@
   gap: var(--sp-sm);
 }
 
+@media (max-width: 767px) {
+  :host {
+    flex-wrap: wrap;
+    row-gap: var(--sp-xs);
+  }
+}
+
 .offline-indicator__dot {
   display: inline-block;
   width: 0.5rem;
