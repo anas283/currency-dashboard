@@ -1,0 +1,260 @@
+╭─── Claude Code v2.1.214 ─────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                 Welcome back Anas!                 │ started                 │
+│                                                    │ Run /init to create a … │
+│                      ▗ ▗   ▖ ▖                     │ ─────────────────────── │
+│                                                    │ What's new              │
+│                        ▘▘ ▝▝                       │ Fixed single-segment `… │
+│    Sonnet 5 · Claude Pro ·                         │ Fixed a permission-che… │
+│    muhammadanasbinadam@gmail.com's Organization    │ Fixed Bash permission … │
+│       ~/Desktop/interview/currency-dashboard       │ /release-notes for more │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+
+❯ update live/polling label to show "Xm ago" past 60s                           
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/features/offline-indicator/offline-indicator.component.ts)
+  ⎿  Added 6 lines, removed 2 lines
+      13  
+      14  const STALE_THRESHOLD_MINUTES = 24 * 60;
+      15  
+      16 -function formatSecondsAgo(timestamp: number, now: number): numb
+         -er {                                                           
+      17 -  return Math.max(0, Math.floor((now - timestamp) / 1000));    
+      16 +function formatUpdatedAgo(timestamp: number, now: number): stri
+         +ng {                                                           
+      17 +  const seconds = Math.max(0, Math.floor((now - timestamp) / 10
+         +00));                                                          
+      18 +  if (seconds < 60) {                                          
+      19 +    return `${seconds}s ago`;                                  
+      20 +  }                                                            
+      21 +  return `${Math.floor(seconds / 60)}m ago`;                   
+      22  }
+      23  
+      24  // Sample data ships with a fixed timestamp, so "minutes ago" a
+          gainst the
+
+⏺ Update(src/app/features/offline-indicator/offline-indicator.component.ts)
+  ⎿  Added 2 lines, removed 2 lines
+      77        case 'live':
+      78          return lastUpdated === null
+      79            ? 'Live'
+      80 -          : `Live · updated ${formatSecondsAgo(lastUpdated, now
+         -)}s ago`;                                                      
+      80 +          : `Live · updated ${formatUpdatedAgo(lastUpdated, now
+         +)}`;                                                           
+      81        case 'polling':
+      82          return lastUpdated === null
+      83            ? 'Polling'
+      84 -          : `Polling · updated ${formatSecondsAgo(lastUpdated, 
+         -now)}s ago`;                                                   
+      84 +          : `Polling · updated ${formatUpdatedAgo(lastUpdated, 
+         +now)}`;                                                        
+      85        case 'backing-off':
+      86          return lastUpdated === null
+      87            ? 'Backing off'
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Existing live/polling tests only tick a few seconds, so still pass. Let me add
+  a test for the 60s+ case and run the suite.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Add a test for live status crossing 60s to "m ago".
+
+⏺ Update(src/app/features/offline-indicator/offline-indicator.component.spec.ts)
+  ⎿  Added 16 lines
+      125      discardPeriodicTasks();
+      126    }));
+      127  
+      128 +  it('should render "Live · updated Xm ago" once stale past 60
+          +s', fakeAsync(() => {                                         
+      129 +    const now = Date.now();                                   
+      130 +    createFixture();                                          
+      131 +    realtimeService.status.set('live');                       
+      132 +    realtimeService.lastUpdated.set(now - 90_000);            
+      133 +                                                              
+      134 +    detectChanges();                                          
+      135 +    tick(0);                                                  
+      136 +                                                              
+      137 +    expect(getBadgeText()).toContain('Live · updated');       
+      138 +    expect(getBadgeText()).toContain('m ago');                
+      139 +    expect(getBadgeText()).not.toContain('s ago');            
+      140 +                                                              
+      141 +    discardPeriodicTasks();                                   
+      142 +  }));                                                        
+      143 +                                                              
+      144    it('should refresh the "Xm ago" text every minute when backi
+           ng-off', fakeAsync(() => {
+      145      const now = Date.now();
+      146      createFixture();
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ 13/13 pass, coverage fail expected (partial-file run only). Done.
+
+✻ Crunched for 38s
+
+※ recap: Fixed live/polling "ago" label to show minutes past 60s instead of raw seconds; added test for it. All 13 offline-indicator tests pass, nothing else pending. (disable recaps in /config)
+
+❯ fix overflow issue in trends page when currency is selected and charts is     
+  showing                                                                       
+
+  Searched for 2 patterns, read 5 files (ctrl+o to expand)
+
+⏺ Update(src/app/shared/components/chart/chart.component.scss)
+  ⎿  Added 14 lines, removed 1 line
+       1  .chart-wrapper {
+       2 -  position: relative;                                          
+       2 +  display: flex;                                               
+       3 +  flex-direction: column;                                      
+       4    width: 100%;
+       5    height: 100%;
+       6 +  min-height: 0;                                               
+       7  }
+       8  
+       9 +.chart-canvas-box {                                            
+      10 +  position: relative;                                          
+      11 +  flex: 1 1 auto;                                              
+      12 +  min-height: 0;                                               
+      13 +  min-width: 0;                                                
+      14 +}                                                              
+      15 +                                                               
+      16  canvas {
+      17    display: block;
+      18    width: 100%;
+     ...
+      21  
+      22  .chart-legend {
+      23    display: flex;
+      24 +  flex-wrap: wrap;                                             
+      25 +  flex-shrink: 0;                                              
+      26    gap: 1rem;
+      27    list-style: none;
+      28    margin: 0.5rem 0 0;
+      29    padding: 0;
+      30    font-size: 0.875rem;
+      31 +  min-width: 0;                                                
+      32 +  overflow-wrap: anywhere;                                     
+      33  }
+      34  
+      35  .chart-legend__swatch {
+
+⏺ Now wrap canvas in its own box so it gets flex:1 sizing, keeping legend as
+  separate flow item.
+
+⏺ Update(src/app/shared/components/chart/chart.component.html)
+  ⎿  Added 7 lines, removed 5 lines
+       1  <div class="chart-wrapper">
+       2 -  <canvas                                                      
+       3 -    #chartCanvas                                               
+       4 -    role="img"                                                 
+       5 -    aria-label="Line chart showing currency trend data"        
+       6 -  ></canvas>                                                   
+       2 +  <div class="chart-canvas-box">                               
+       3 +    <canvas                                                    
+       4 +      #chartCanvas                                             
+       5 +      role="img"                                               
+       6 +      aria-label="Line chart showing currency trend data"      
+       7 +    ></canvas>                                                 
+       8 +  </div>                                                       
+       9  
+      10    @if (datasets().length > 0) {
+      11      <ul class="chart-legend" aria-label="Chart legend">
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ No spec deps on markup structure. Let's run the chart + trends test suites.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ 11/11 pass, coverage fail expected (partial run). Now visually verify via dev
+  server + browser.
+
+  Called playwright 7 times, ran 2 shell commands (ctrl+o to expand)
+⏺ Select two more currencies to trigger the multi-line legend/chart.
+
+  Called playwright 2 times (ctrl+o to expand)
+
+⏺ Now check for overflow at desktop and narrow mobile widths.
+
+  Read 2 files, called playwright 5 times (ctrl+o to expand)
+
+⏺ Found the real cause — the visually-hidden <table> (rendered only when a
+  currency is selected and the chart has data) uses table-layout: auto, so its
+  intrinsic content width (many date columns) ignores the width: 1px override
+  and blows out document.documentElement.scrollWidth, even though it's visually
+  clipped. Fixing both hidden-table stylesheets with table-layout: fixed.
+
+⏺ Update(src/app/features/trends/trends.component.scss)
+  ⎿  Added 1 line
+      83    clip-path: inset(50%);
+      84    white-space: nowrap;
+      85    border: 0;
+      86 +  table-layout: fixed;                                         
+      87  }
+
+⏺ Update(src/app/shared/components/chart/chart.component.scss)
+  ⎿  Added 1 line
+      52    clip-path: inset(50%);
+      53    white-space: nowrap;
+      54    border: 0;
+      55 +  table-layout: fixed;                                         
+      56  }
+
+⏺ Rebuild not needed for dev server (live reload). Verify fix in browser.
+
+  Called playwright 6 times (ctrl+o to expand)
+
+⏺ Overflow gone. Confirm with a screenshot.
+
+  Read 1 file, called playwright (ctrl+o to expand)
+
+⏺ Clean, no horizontal overflow, fits viewport width. Now run full test suite
+  for these two files plus a broader check, then clean up the dev server.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ 11/11 pass. Killing dev server and cleaning up screenshots.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Root cause: hidden a11y <table> in trends (rendered only when currency
+  selected + chart has data) used table-layout: auto — its width: 1px in
+  .visually-hidden got overridden by table's min-content width (many date
+  columns), blowing out document.documentElement.scrollWidth even though
+  visually clipped. Added table-layout: fixed to both .visually-hidden table
+  rules (trends + chart component). Also fixed a secondary issue: chart legend
+  was a flex sibling of the canvas both set to height:100% inside the
+  fixed-height wrapper, which could push content past the container —
+  restructured chart-wrapper into a flex column with the canvas in its own
+  flex:1 box and legend flex-wrap/shrink-0 below it.
+
+  Verified at 375px viewport with 3 currencies selected: scrollWidth now matches
+  clientWidth (was 3341 vs 375 before). Chart/trends test suites still pass
+  (11/11).
+
+✻ Cooked for 3m 24s
+
+❯ commit this                                                                   
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Two distinct fixes, splitting into two commits.
+
+  Committed b9a994e, fd74162 (ctrl+o to expand)
+
+⏺ Both commits in. git status clean aside from the untracked prompt-history
+  file, left alone.
+
+✻ Cogitated for 16s
+
+❯ push it                                                                       
+
+  Pushed to feature/dashboard (ctrl+o to expand)
+
+⏺ Pushed. feature/dashboard updated 3b6c3c1..fd74162.
+✻ Baked for 5s
