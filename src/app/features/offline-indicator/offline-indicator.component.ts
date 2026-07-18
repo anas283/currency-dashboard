@@ -13,8 +13,12 @@ import { BadgeComponent, BadgeVariant } from '../../ui/badge/badge.component';
 
 const STALE_THRESHOLD_MINUTES = 24 * 60;
 
-function formatSecondsAgo(timestamp: number, now: number): number {
-  return Math.max(0, Math.floor((now - timestamp) / 1000));
+function formatUpdatedAgo(timestamp: number, now: number): string {
+  const seconds = Math.max(0, Math.floor((now - timestamp) / 1000));
+  if (seconds < 60) {
+    return `${seconds}s ago`;
+  }
+  return `${Math.floor(seconds / 60)}m ago`;
 }
 
 // Sample data ships with a fixed timestamp, so "minutes ago" against the
@@ -73,11 +77,11 @@ export class OfflineIndicatorComponent {
       case 'live':
         return lastUpdated === null
           ? 'Live'
-          : `Live · updated ${formatSecondsAgo(lastUpdated, now)}s ago`;
+          : `Live · updated ${formatUpdatedAgo(lastUpdated, now)}`;
       case 'polling':
         return lastUpdated === null
           ? 'Polling'
-          : `Polling · updated ${formatSecondsAgo(lastUpdated, now)}s ago`;
+          : `Polling · updated ${formatUpdatedAgo(lastUpdated, now)}`;
       case 'backing-off':
         return lastUpdated === null
           ? 'Backing off'
