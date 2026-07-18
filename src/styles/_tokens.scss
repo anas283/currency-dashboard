@@ -1,4 +1,8 @@
 :root {
+  // Layout — overwritten with the live measured value by NavBarComponent;
+  // this is only the pre-hydration/no-JS fallback.
+  --nav-height: 4.5rem;
+
   // Brand & accent
   --color-primary: #9fe870;
   --color-on-primary: #0e0f0c;

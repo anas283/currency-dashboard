@@ -26,12 +26,21 @@
     width: 100%;
     min-height: 2.75rem;
     box-sizing: border-box;
-    padding: var(--sp-sm) var(--sp-md);
+    padding: var(--sp-sm) calc(var(--sp-xl) + var(--sp-md)) var(--sp-sm) var(--sp-md);
     border: 1px solid var(--color-ink);
     border-radius: var(--rd-md);
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font: var(--text-body-md);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: var(--select-arrow);
+    background-repeat: no-repeat;
+    background-position: right var(--sp-md) center;
+    background-size: 12px 8px;
   }
 
   &__swap-row {

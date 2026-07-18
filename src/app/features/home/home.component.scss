@@ -5,9 +5,6 @@
 .home {
   display: grid;
   gap: var(--sp-xl);
-  padding: var(--sp-xl);
-  max-width: 90rem;
-  margin-inline: auto;
 }
 
 .home__sidebar {
@@ -28,6 +25,6 @@
 
   .home__sidebar {
     position: sticky;
-    top: calc(4.5rem + var(--sp-lg));
+    top: calc(var(--nav-height) + var(--sp-lg));
   }
 }

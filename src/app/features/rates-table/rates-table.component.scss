@@ -5,9 +5,15 @@
     align-items: flex-end;
     gap: var(--sp-lg);
     position: sticky;
-    top: calc(4.5rem + var(--sp-lg));
+    top: var(--nav-height);
     z-index: 10;
     background-color: var(--color-canvas);
+    // Pull up over the card's own top padding and re-add it as our own
+    // padding, so this bar's opaque background — not the card's padding —
+    // is what covers the strip directly under the sticky nav. Otherwise
+    // that strip is empty card padding and scrolled-past rows show through.
+    margin-top: calc(-1 * var(--sp-2xl));
+    padding-top: var(--sp-2xl);
     padding-bottom: var(--sp-lg);
     margin-bottom: var(--sp-md);
     border-bottom: 1px solid var(--color-canvas-soft);
@@ -33,11 +39,20 @@
     box-sizing: border-box;
     border: 1px solid var(--color-ink);
     border-radius: var(--rd-md);
-    padding: var(--sp-md) var(--sp-lg);
+    padding: var(--sp-md) calc(var(--sp-xl) + var(--sp-md)) var(--sp-md) var(--sp-lg);
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font: var(--text-body-md);
     cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: var(--select-arrow);
+    background-repeat: no-repeat;
+    background-position: right var(--sp-lg) center;
+    background-size: 12px 8px;
 
     &:focus {
       outline: 2px solid var(--color-primary);
@@ -131,6 +146,10 @@
     white-space: nowrap;
   }
 
+  &__table th.rates-table__delta-col {
+    text-transform: none;
+  }
+
   // Below 767px the table can't fit Currency/Rate/Change side by side without
   // forcing the whole page to scroll horizontally. Header stays a wrapping
   // row of sort controls (decoupled from row width, so sorting still works);
@@ -222,7 +241,7 @@
   .sort-header__button {
     display: inline-flex;
     align-items: center;
-    gap: var(--sp-xs);
+    gap: var(--sp-sm);
     margin: calc(-1 * var(--sp-xxs)) calc(-1 * var(--sp-sm));
     appearance: none;
     -webkit-appearance: none;
@@ -252,13 +271,20 @@
 
   .sort-header__indicator {
     display: inline-flex;
-    min-width: 0.75rem;
-    font-size: 0.85em;
+    align-items: center;
+    justify-content: center;
+    width: 0.75rem;
+    line-height: 1;
   }
 
   .sort-header__indicator:empty::after {
-    content: '⌄';
-    opacity: 0.25;
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+    opacity: 0.35;
     transition: opacity 0.15s ease;
   }
 

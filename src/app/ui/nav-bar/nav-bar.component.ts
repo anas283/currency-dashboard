@@ -1,8 +1,11 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
+  OnDestroy,
   signal,
 } from '@angular/core';
 
@@ -30,7 +33,7 @@ const TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {
   styleUrl: './nav-bar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NavBarComponent {
+export class NavBarComponent implements AfterViewInit, OnDestroy {
   protected readonly themeService = inject(ThemeService);
   protected readonly realtimeService = inject(RealtimeService);
   protected readonly links = signal<NavLink[]>([
@@ -39,6 +42,26 @@ export class NavBarComponent {
     { label: 'Trends', path: '/trends' },
     { label: 'Converter', path: '/converter' },
   ]);
+
+  private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private resizeObserver: ResizeObserver | null = null;
+
+  ngAfterViewInit(): void {
+    const setNavHeight = () => {
+      document.documentElement.style.setProperty(
+        '--nav-height',
+        `${this.elementRef.nativeElement.offsetHeight}px`,
+      );
+    };
+
+    this.resizeObserver = new ResizeObserver(setNavHeight);
+    this.resizeObserver.observe(this.elementRef.nativeElement);
+    setNavHeight();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
 
   protected readonly lastUpdatedLabel = computed<string | null>(() => {
     const timestamp = this.realtimeService.lastUpdated();
