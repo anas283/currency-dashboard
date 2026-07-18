@@ -90,6 +90,29 @@
                 }
               ]
             },
+            "staging": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "300kb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "8kb"
+                },
+                {
+                  "type": "any",
+                  "maximumWarning": "300kb"
+                }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.staging.ts"
+                }
+              ]
+            },
             "development": {
               "optimization": false,
               "extractLicenses": false,
@@ -109,6 +132,9 @@
           "configurations": {
             "production": {
               "buildTarget": "currency-dashboard:build:production"
+            },
+            "staging": {
+              "buildTarget": "currency-dashboard:build:staging"
             },
             "development": {
               "buildTarget": "currency-dashboard:build:development"

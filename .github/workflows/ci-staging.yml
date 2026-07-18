@@ -1,0 +1,70 @@
+name: CI Staging
+
+on:
+  push:
+    branches: [staging]
+  pull_request:
+    branches: [staging]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Inject staging API key
+        run: sed -i 's|\${EXCHANGERATE_API_KEY}|${{ secrets.STAGING_EXCHANGERATE_API_KEY }}|g' src/environments/environment.staging.ts
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run e2e tests
+        run: npm run e2e:staging
+
+      - name: Build
+        run: npm run build:staging
+
+      - name: Upload build artifact
+        if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-staging
+          path: dist/currency-dashboard/browser
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: github-pages-staging
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-staging
+          path: dist/currency-dashboard/browser
+
+      - name: Deploy to GitHub Pages (staging subpath)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist/currency-dashboard/browser
+          destination_dir: staging
+          keep_files: true

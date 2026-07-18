@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build --configuration production",
+    "build:staging": "ng build --configuration staging",
     "test": "ng test --watch=false && node scripts/check-category-coverage.js",
     "test:watch": "ng test",
     "lint": "ng lint",
@@ -12,6 +13,7 @@
     "serve": "http-server dist/currency-dashboard/browser -p 4200 --proxy http://localhost:4200?",
     "cypress:run": "cypress run",
     "e2e": "npm run build && start-server-and-test serve http://localhost:4200 cypress:run",
+    "e2e:staging": "npm run build:staging && start-server-and-test serve http://localhost:4200 cypress:run",
     "verify": "npm run lint && npm run typecheck && npm test && npm run e2e"
   },
   "private": true,
