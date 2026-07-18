@@ -3,14 +3,28 @@
 }
 
 .trends {
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--sp-xl);
+    margin-bottom: var(--sp-lg);
+  }
+
   &__title {
-    margin: 0 0 var(--sp-lg);
-    font: var(--text-display-sm);
-    letter-spacing: var(--text-display-sm-letter-spacing);
+    margin: 0 var(--sp-xl) 0 0;
+    font: var(--text-body-md-strong);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-mute);
   }
 
   &__section {
     margin-bottom: var(--sp-lg);
+
+    &--inline {
+      margin-bottom: 0;
+    }
   }
 
   &__label {

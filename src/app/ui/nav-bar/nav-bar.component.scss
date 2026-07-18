@@ -1,55 +1,96 @@
-.nav-bar {
+// Sticky is applied on :host, not .nav-bar: app-nav-bar (the host element)
+// shrink-wraps to exactly the header's height with no ancestor slack, which
+// gives position:sticky on the header itself zero room to stick. Hosting it
+// one level up — where the containing block is .app-shell, tall enough to
+// hold the rest of the page — gives sticky the room it needs.
+:host {
+  display: block;
   position: sticky;
   top: 0;
   z-index: 100;
+}
+
+.nav-bar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--sp-lg);
+  gap: var(--sp-xl);
   background-color: var(--color-canvas);
   color: var(--color-ink);
   padding: var(--sp-md) var(--sp-xl);
   border-bottom: 1px solid var(--color-canvas-soft);
+  overflow-x: auto;
 
   &__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    flex: 0 0 auto;
     font: var(--text-body-md-strong);
+    white-space: nowrap;
+  }
+
+  &__logo-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: var(--rd-sm);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-weight: 900;
   }
 
   &__nav {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: var(--sp-lg);
-    margin-inline: auto;
-
-    @media (max-width: 767px) {
-      order: 3;
-      width: 100%;
-      margin-inline: 0;
-      justify-content: flex-start;
-      gap: var(--sp-md);
-    }
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 
   &__link {
+    padding-bottom: var(--sp-xxs);
+    border-bottom: 2px solid transparent;
     font: var(--text-body-sm-strong);
-    color: var(--color-ink);
+    color: var(--color-mute);
     text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
 
-    &:hover,
+    &:hover {
+      color: var(--color-ink);
+    }
+
     &--active {
-      text-decoration: underline;
+      color: var(--color-ink);
+      border-bottom-color: var(--color-primary);
     }
   }
 
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-md);
+    margin-inline-start: auto;
+    flex: 0 1 auto;
+    white-space: nowrap;
+  }
+
+  &__updated {
+    color: var(--color-mute);
+    font: var(--text-caption);
+    white-space: nowrap;
+  }
+
   &__toggle {
+    flex: 0 0 auto;
     border: 1px solid var(--color-ink);
     border-radius: var(--rd-xl);
-    padding: var(--sp-sm) var(--sp-md);
+    padding: var(--sp-xs) var(--sp-md);
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font: var(--text-body-sm-strong);
     cursor: pointer;
+    white-space: nowrap;
   }
 }

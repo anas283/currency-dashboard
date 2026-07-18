@@ -21,6 +21,7 @@
   --color-negative-bg: #320707;
   --color-accent-orange: #ffc091;
   --color-accent-cyan: #38c8ff;
+  --shadow-card: 0 1px 2px rgba(14, 15, 12, 0.05), 0 12px 28px -8px rgba(14, 15, 12, 0.16);
 }
 
 [data-theme="dark"] {
@@ -46,4 +47,5 @@
   --color-negative-bg: #320707;
   --color-accent-orange: #ffc091;
   --color-accent-cyan: #38c8ff;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -8px rgba(0, 0, 0, 0.55);
 }

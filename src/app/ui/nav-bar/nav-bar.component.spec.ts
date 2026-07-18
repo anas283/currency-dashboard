@@ -1,9 +1,15 @@
-import { signal } from '@angular/core';
+import { signal, WritableSignal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
 import { NavBarComponent } from './nav-bar.component';
 import { ThemeService } from '../../core/services/theme.service';
+import { RealtimeService, RealtimeStatus } from '../../core/services/realtime.service';
+
+class RealtimeServiceStub implements Partial<RealtimeService> {
+  readonly status: WritableSignal<RealtimeStatus> = signal('live');
+  readonly lastUpdated: WritableSignal<number | null> = signal(null);
+}
 
 describe('NavBarComponent', () => {
   let fixture: ComponentFixture<NavBarComponent>;
@@ -20,6 +26,7 @@ describe('NavBarComponent', () => {
       providers: [
         provideRouter([]),
         { provide: ThemeService, useValue: themeService },
+        { provide: RealtimeService, useValue: new RealtimeServiceStub() },
       ],
     }).compileComponents();
 

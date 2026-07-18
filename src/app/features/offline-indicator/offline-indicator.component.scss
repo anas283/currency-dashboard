@@ -1,3 +1,35 @@
 :host {
   display: inline-flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.offline-indicator__dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: var(--sp-xs);
+  border-radius: var(--rd-full);
+  vertical-align: middle;
+
+  &--positive {
+    background-color: var(--color-positive);
+  }
+
+  &--negative {
+    background-color: var(--color-negative);
+  }
+}
+
+.offline-indicator__not-live {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--rd-sm);
+  padding: var(--sp-xxs) var(--sp-sm);
+  border: 1px solid var(--color-negative-deep);
+  color: var(--color-negative-deep);
+  font: var(--text-caption);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }

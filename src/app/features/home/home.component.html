@@ -1,14 +1,10 @@
-<div class="home__status">
-  <app-offline-indicator />
-</div>
-
-<app-hero-band headline="Currency Exchange Dashboard">
-  <div class="home__hero-content">
+<div class="home">
+  <aside class="home__sidebar">
     <app-converter class="home__converter" />
-  </div>
-</app-hero-band>
+  </aside>
 
-<section class="home__sections">
-  <app-rates-table class="home__rates" />
-  <app-trends class="home__trends" />
-</section>
+  <div class="home__content">
+    <app-rates-table class="home__rates" />
+    <app-trends class="home__trends" />
+  </div>
+</div>

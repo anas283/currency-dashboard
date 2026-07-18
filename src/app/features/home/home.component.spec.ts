@@ -58,15 +58,12 @@ describe('HomeComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render hero band, converter, rates table, trends, and offline indicator', () => {
+  it('should render the converter sidebar, rates table, and trends', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('app-hero-band')).toBeTruthy();
-    expect(compiled.querySelector('app-hero-band app-converter')).toBeTruthy();
+    expect(compiled.querySelector('.home__sidebar app-converter')).toBeTruthy();
     expect(compiled.querySelector('app-rates-table')).toBeTruthy();
     expect(compiled.querySelector('app-trends')).toBeTruthy();
-    expect(compiled.querySelector('app-offline-indicator')).toBeTruthy();
-    expect(compiled.textContent).toContain('Currency Exchange Dashboard');
   });
 });

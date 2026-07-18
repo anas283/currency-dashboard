@@ -59,6 +59,11 @@ export class OfflineIndicatorComponent {
     return current === 'live' || current === 'polling' ? 'positive' : 'negative';
   });
 
+  readonly isLive = computed<boolean>(() => {
+    const current = this.realtimeService.status();
+    return current === 'live' || current === 'polling';
+  });
+
   readonly label = computed<string>(() => {
     const current = this.realtimeService.status();
     const lastUpdated = this.realtimeService.lastUpdated();

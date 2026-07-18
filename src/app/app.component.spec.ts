@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
@@ -11,7 +12,15 @@ describe('App', () => {
       imports: [App],
       providers: [
         provideRouter(routes),
-        { provide: RealtimeService, useValue: { start: () => undefined, stop: () => undefined } },
+        {
+          provide: RealtimeService,
+          useValue: {
+            start: () => undefined,
+            stop: () => undefined,
+            status: signal('live'),
+            lastUpdated: signal(null),
+          },
+        },
       ],
     }).compileComponents();
   });

@@ -1,5 +1,8 @@
 <header class="nav-bar">
-  <div class="nav-bar__brand">CurrencyDashboard</div>
+  <div class="nav-bar__brand">
+    <span class="nav-bar__logo-mark" aria-hidden="true">$</span>
+    CurrencyDashboard
+  </div>
 
   <nav class="nav-bar__nav" aria-label="Main">
     @for (link of links(); track link.path) {
@@ -13,6 +16,13 @@
       </a>
     }
   </nav>
+
+  <div class="nav-bar__status">
+    <app-offline-indicator />
+    @if (lastUpdatedLabel(); as label) {
+      <span class="nav-bar__updated">{{ label }}</span>
+    }
+  </div>
 
   <button
     class="nav-bar__toggle"

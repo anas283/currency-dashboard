@@ -4,7 +4,13 @@
     flex-wrap: wrap;
     align-items: flex-end;
     gap: var(--sp-lg);
-    margin-bottom: var(--sp-xl);
+    position: sticky;
+    top: calc(4.5rem + var(--sp-lg));
+    z-index: 10;
+    background-color: var(--color-canvas);
+    padding-bottom: var(--sp-lg);
+    margin-bottom: var(--sp-md);
+    border-bottom: 1px solid var(--color-canvas-soft);
   }
 
   &__search {
@@ -53,22 +59,41 @@
     td {
       padding: var(--sp-md) var(--sp-lg);
       text-align: left;
-      border-bottom: 1px solid var(--color-ink);
     }
 
     th {
-      font: var(--text-body-sm-strong);
+      padding-bottom: var(--sp-sm);
+      font: var(--text-caption);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-mute);
       white-space: nowrap;
+      border-bottom: 2px solid var(--color-ink);
+    }
+
+    td {
+      border-bottom: 1px solid var(--color-canvas-soft);
     }
   }
 
   &__row {
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.15s ease;
+
+    td:first-child {
+      border-left: 3px solid transparent;
+      transition: border-left-color 0.15s ease;
+    }
 
     &:hover,
     &:focus {
-      background-color: var(--color-canvas-soft);
+      background-color: var(--color-primary-pale);
+    }
+
+    &:hover td:first-child,
+    &:focus td:first-child {
+      border-left-color: var(--color-primary);
     }
 
     &:focus {
@@ -100,5 +125,92 @@
     @media (max-width: 767px) {
       display: none;
     }
+  }
+
+  &__delta-col {
+    white-space: nowrap;
+  }
+
+  &__delta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-xxs);
+    font: var(--text-body-sm-strong);
+
+    &--up {
+      color: var(--color-positive-deep);
+    }
+
+    &--down {
+      color: var(--color-negative-deep);
+    }
+
+    &--flat {
+      color: var(--color-mute);
+    }
+  }
+
+}
+
+// Sort header controls: the directive renders a button + indicator span
+// inside each [appSortHeader] th, appended via Renderer2. `.rates-table` is a
+// bare BEM root that is never applied to an actual element in this
+// component's template (only its `__x` children are) — nesting ::ng-deep
+// under it compiles to a descendant selector that can never match anything.
+// Anchor on :host instead, which always resolves to <app-rates-table>.
+:host ::ng-deep {
+  .sort-header__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    margin: calc(-1 * var(--sp-xxs)) calc(-1 * var(--sp-sm));
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    border-radius: var(--rd-sm);
+    background: none;
+    padding: var(--sp-xxs) var(--sp-sm);
+    font: inherit;
+    font-weight: inherit;
+    color: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .sort-header__button:hover {
+    background-color: var(--color-canvas-soft);
+    color: var(--color-ink);
+  }
+
+  .sort-header__indicator {
+    display: inline-flex;
+    min-width: 0.75rem;
+    font-size: 0.85em;
+  }
+
+  .sort-header__indicator:empty::after {
+    content: '⌄';
+    opacity: 0.25;
+    transition: opacity 0.15s ease;
+  }
+
+  .sort-header__button:hover .sort-header__indicator:empty::after {
+    opacity: 0.7;
+  }
+
+  th[aria-sort='ascending'],
+  th[aria-sort='descending'] {
+    color: var(--color-ink);
+  }
+
+  th[aria-sort='ascending'] .sort-header__button,
+  th[aria-sort='descending'] .sort-header__button {
+    font-weight: 700;
+  }
+
+  th[aria-sort='ascending'] .sort-header__indicator,
+  th[aria-sort='descending'] .sort-header__indicator {
+    color: var(--color-positive-deep);
+    opacity: 1;
   }
 }

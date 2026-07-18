@@ -2,41 +2,32 @@
   display: block;
 }
 
-.home__status {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--sp-md);
-  padding: var(--sp-md) var(--sp-xl);
-  max-width: 75rem;
-  margin-inline: auto;
-}
-
-.home__hero-content {
-  display: flex;
-  justify-content: center;
-}
-
-.home__converter {
-  width: 100%;
-  max-width: 28rem;
-}
-
-.home__sections {
+.home {
   display: grid;
   gap: var(--sp-xl);
   padding: var(--sp-xl);
-  max-width: 75rem;
+  max-width: 90rem;
   margin-inline: auto;
 }
 
-@media (min-width: 48rem) {
-  .home__hero-content {
-    justify-content: flex-end;
-  }
+.home__sidebar {
+  min-width: 0;
+}
+
+.home__content {
+  display: grid;
+  gap: var(--sp-xl);
+  min-width: 0;
 }
 
 @media (min-width: 64rem) {
-  .home__sections {
-    grid-template-columns: 2fr 1fr;
+  .home {
+    grid-template-columns: 20rem 1fr;
+    align-items: start;
+  }
+
+  .home__sidebar {
+    position: sticky;
+    top: calc(4.5rem + var(--sp-lg));
   }
 }

@@ -1,5 +1,5 @@
 <app-card variant="content">
-  <div class="rates-table__controls">
+  <div class="rates-table__controls" data-testid="rates-table-controls">
     <app-text-input
       class="rates-table__search"
       label="Search currencies"
@@ -62,6 +62,7 @@
           >
             Rate
           </th>
+          <th class="rates-table__delta-col">Change</th>
           <th
             class="rates-table__base-col"
             appSortHeader
@@ -88,6 +89,17 @@
               <span class="rates-table__name">{{ row.name }}</span>
             </td>
             <td>{{ row.rate | number: '1.0-6' }}</td>
+            <td class="rates-table__delta-col">
+              @if (row.delta === null) {
+                <span class="rates-table__delta rates-table__delta--flat">—</span>
+              } @else if (row.delta > 0) {
+                <span class="rates-table__delta rates-table__delta--up">▲ {{ row.delta * 100 | number: '1.2-2' }}%</span>
+              } @else if (row.delta < 0) {
+                <span class="rates-table__delta rates-table__delta--down">▼ {{ row.delta * -100 | number: '1.2-2' }}%</span>
+              } @else {
+                <span class="rates-table__delta rates-table__delta--flat">0.00%</span>
+              }
+            </td>
             <td class="rates-table__base-col">{{ row.base }}</td>
           </tr>
         }
