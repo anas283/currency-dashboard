@@ -11,4 +11,9 @@
 
 .app-shell__main {
   flex: 1 0 auto;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 90rem;
+  padding: var(--sp-xl);
+  margin-inline: auto;
 }

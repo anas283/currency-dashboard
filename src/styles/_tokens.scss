@@ -1,4 +1,8 @@
 :root {
+  // Layout — overwritten with the live measured value by NavBarComponent;
+  // this is only the pre-hydration/no-JS fallback.
+  --nav-height: 4.5rem;
+
   // Brand & accent
   --color-primary: #9fe870;
   --color-on-primary: #0e0f0c;
@@ -10,9 +14,15 @@
   --color-ink: #0e0f0c;
   --color-ink-deep: #163300;
   --color-body: #454745;
-  --color-mute: #868685;
+  --color-mute: #5c5d5b;
   --color-canvas: #ffffff;
   --color-canvas-soft: #e8ebe6;
+
+  // Fixed (non-theme-adaptive) surfaces — for components designed as an
+  // always-dark band (footer, hero-band--dark, card--feature-dark)
+  // regardless of light/dark theme. Never overridden in _theme.scss.
+  --color-ink-fixed: #0e0f0c;
+  --color-canvas-soft-fixed: #e8ebe6;
 
   // Semantic
   --color-positive: #2ead4b;
@@ -38,6 +48,9 @@
   --sp-xl: 24px;
   --sp-2xl: 32px;
   --sp-3xl: 48px;
+
+  // Elevation
+  --shadow-card: 0 1px 2px rgba(14, 15, 12, 0.05), 0 12px 28px -8px rgba(14, 15, 12, 0.16);
 
   // Radius
   --rd-sm: 8px;

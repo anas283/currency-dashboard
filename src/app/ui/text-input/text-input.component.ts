@@ -19,6 +19,7 @@ export class TextInputComponent {
   readonly label = input<string>('');
   readonly placeholder = input<string>('');
   readonly type = input<'text' | 'email' | 'password' | 'number'>('text');
+  readonly min = input<string | null>(null);
   readonly value = input<string>('');
   readonly valueChange = output<string>();
 

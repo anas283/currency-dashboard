@@ -24,7 +24,7 @@ describe('Trends', () => {
   });
 
   it('loads and shows base currency', () => {
-    cy.get('.trends__base').should('contain', 'USD');
+    cy.get('.trends__base').should('contain', 'MYR');
     cy.get('.trends__empty').should('contain', 'Select a currency to view trends.');
   });
 

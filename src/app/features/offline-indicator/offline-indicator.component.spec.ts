@@ -125,6 +125,22 @@ describe('OfflineIndicatorComponent', () => {
     discardPeriodicTasks();
   }));
 
+  it('should render "Live · updated Xm ago" once stale past 60s', fakeAsync(() => {
+    const now = Date.now();
+    createFixture();
+    realtimeService.status.set('live');
+    realtimeService.lastUpdated.set(now - 90_000);
+
+    detectChanges();
+    tick(0);
+
+    expect(getBadgeText()).toContain('Live · updated');
+    expect(getBadgeText()).toContain('m ago');
+    expect(getBadgeText()).not.toContain('s ago');
+
+    discardPeriodicTasks();
+  }));
+
   it('should refresh the "Xm ago" text every minute when backing-off', fakeAsync(() => {
     const now = Date.now();
     createFixture();

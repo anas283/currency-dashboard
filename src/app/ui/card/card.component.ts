@@ -4,7 +4,8 @@ export type CardVariant =
   | 'content'
   | 'feature-sage'
   | 'feature-green'
-  | 'feature-dark';
+  | 'feature-dark'
+  | 'currency-converter';
 
 @Component({
   selector: 'app-card',

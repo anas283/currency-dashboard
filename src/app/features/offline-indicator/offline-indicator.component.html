@@ -1,1 +1,9 @@
-<app-badge data-testid="offline-badge" [variant]="variant()">{{ label() }}</app-badge>
+<app-badge data-testid="offline-badge" [variant]="variant()"><span
+    class="offline-indicator__dot"
+    [class.offline-indicator__dot--positive]="variant() === 'positive'"
+    [class.offline-indicator__dot--negative]="variant() === 'negative'"
+    aria-hidden="true"
+  ></span>{{ label() }}</app-badge>
+@if (!isLive()) {
+  <span class="offline-indicator__not-live" data-testid="not-live-flag">Not live</span>
+}

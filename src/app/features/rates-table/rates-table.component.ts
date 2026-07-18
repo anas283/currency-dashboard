@@ -1,8 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { Currency, CURATED_TOP_30 } from '../../core/models/currency';
+import { HistoryResponse } from '../../core/models/api.types';
+import { CacheService } from '../../core/services/cache.service';
 import { RatesService } from '../../core/services/rates.service';
 import { SortChange, SortHeaderDirective } from '../../shared/directives/sort-header.directive';
 import { SortDirection } from '../../shared/pipes/sort.pipe';
@@ -13,6 +24,14 @@ import { TextInputComponent } from '../../ui/text-input/text-input.component';
 interface RateRow extends Currency {
   rate: number;
   base: string;
+  delta: number | null;
+}
+
+function yesterdayDateKey(): string {
+  const now = new Date();
+  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  today.setUTCDate(today.getUTCDate() - 1);
+  return today.toISOString().slice(0, 10);
 }
 
 @Component({
@@ -32,6 +51,9 @@ interface RateRow extends Currency {
 export class RatesTableComponent {
   readonly ratesService = inject(RatesService);
   private readonly router = inject(Router);
+  private readonly cache = inject(CacheService);
+
+  private readonly baseSelect = viewChild<ElementRef<HTMLSelectElement>>('baseSelect');
 
   readonly search = signal('');
   readonly sortKey = signal<string>('code');
@@ -39,6 +61,36 @@ export class RatesTableComponent {
   readonly showAll = signal(false);
 
   private readonly currencyMeta = new Map(CURATED_TOP_30.map((currency) => [currency.code, currency]));
+
+  // Best-effort day-over-day delta: reads yesterday's cached snapshot for the
+  // current base out of IndexedDB (populated by HistoryService) with no
+  // network call. Absent from cache simply means no delta is shown.
+  readonly previousRates = signal<Record<string, number> | null>(null);
+
+  constructor() {
+    effect(() => {
+      const base = this.ratesService.base();
+      const key = `history::${base}::${yesterdayDateKey()}`;
+      this.previousRates.set(null);
+      void this.cache.get<HistoryResponse>(key).then((entry) => {
+        if (entry.value) {
+          this.previousRates.set(entry.value.conversion_rates);
+        }
+      });
+    });
+
+    // Native <select> loses its selection when its <option>s are swapped out
+    // (curated 30 -> full API list once the snapshot loads); Angular's [value]
+    // binding won't re-push an unchanged value, so re-sync the DOM manually.
+    effect(() => {
+      const base = this.ratesService.base();
+      this.baseOptions();
+      const select = this.baseSelect()?.nativeElement;
+      if (select) {
+        select.value = base;
+      }
+    });
+  }
 
   readonly baseOptions = computed(() => {
     const snapshot = this.ratesService.snapshot();
@@ -55,6 +107,7 @@ export class RatesTableComponent {
     }
 
     const base = this.ratesService.base();
+    const previous = this.previousRates();
     const sourceCodes = this.showAll()
       ? Object.keys(snapshot.conversion_rates)
       : CURATED_TOP_30.map((currency) => currency.code);
@@ -63,12 +116,18 @@ export class RatesTableComponent {
       .filter((code) => code in snapshot.conversion_rates)
       .map((code) => {
         const meta = this.currencyMeta.get(code);
+        const rate = snapshot.conversion_rates[code];
+        const previousRate = previous?.[code];
+        const delta =
+          previousRate != null && previousRate !== 0 ? (rate - previousRate) / previousRate : null;
+
         return {
           code,
           name: meta?.name ?? code,
           flag: meta?.flag ?? '',
-          rate: snapshot.conversion_rates[code],
+          rate,
           base,
+          delta,
         };
       });
   });

@@ -1,48 +1,83 @@
 .converter {
-  &__row {
-    display: flex;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    gap: var(--sp-md);
-  }
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
 
-  &__amount {
-    flex: 1 1 8rem;
-    min-width: 6rem;
+  &__title {
+    margin: 0 0 var(--sp-xs);
+    font: var(--text-body-sm-strong);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-mute);
   }
 
   &__field {
     display: flex;
-    flex: 1 1 10rem;
     flex-direction: column;
     gap: var(--sp-xs);
-    min-width: 8rem;
   }
 
   &__label {
-    color: var(--color-ink-soft);
+    color: var(--color-mute);
     font: var(--text-body-sm);
   }
 
   &__select {
     width: 100%;
-    padding: var(--sp-sm);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background-color: var(--color-surface);
+    min-height: 2.75rem;
+    box-sizing: border-box;
+    padding: var(--sp-sm) calc(var(--sp-xl) + var(--sp-md)) var(--sp-sm) var(--sp-md);
+    border: 1px solid var(--color-ink);
+    border-radius: var(--rd-md);
+    background-color: var(--color-canvas);
     color: var(--color-ink);
     font: var(--text-body-md);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: var(--select-arrow);
+    background-repeat: no-repeat;
+    background-position: right var(--sp-md) center;
+    background-size: 12px 8px;
+  }
+
+  &__swap-row {
+    display: flex;
+    justify-content: flex-start;
+    margin: calc(-1 * var(--sp-xxs)) 0;
   }
 
   &__swap {
     flex: 0 0 auto;
+
+    ::ng-deep .btn {
+      min-height: 2.75rem;
+      padding: var(--sp-xs) var(--sp-lg);
+      background-color: transparent;
+      border: 1px solid var(--color-positive-deep);
+      color: var(--color-positive-deep);
+    }
+
+    ::ng-deep .btn:hover {
+      background-color: var(--color-primary-pale);
+    }
   }
 
   &__result {
-    margin-top: var(--sp-lg);
+    margin-top: var(--sp-xs);
+    padding-top: var(--sp-md);
+    border-top: 1px solid var(--color-canvas-soft);
   }
 
   &__value {
     font: var(--text-display-md);
+    color: var(--color-positive-deep);
+  }
+
+  &__code {
+    font: var(--text-body-md-strong);
+    color: var(--color-mute);
   }
 }

@@ -1,28 +1,29 @@
 <app-card variant="content">
-  <h1 class="trends__title">Trends</h1>
+  <div class="trends__header">
+    <h2 class="trends__title">Trend chart</h2>
+    <div class="trends__section trends__section--inline">
+      <span class="trends__label">Base</span>
+      <span class="trends__base">{{ ratesService.base() }}</span>
+    </div>
 
-  <div class="trends__section">
-    <span class="trends__label">Base currency</span>
-    <span class="trends__base">{{ ratesService.base() }}</span>
-  </div>
-
-  <div class="trends__section">
-    <span class="trends__label">Aggregation</span>
-    <div class="trends__toggle">
-      @for (option of aggregationOptions; track option) {
-        <app-button
-          [attr.data-testid]="'aggregation-' + option"
-          [variant]="aggregation() === option ? 'primary' : 'secondary'"
-          (click)="setAggregation(option)"
-        >
-          {{ aggregationLabels[option] }}
-        </app-button>
-      }
+    <div class="trends__section trends__section--inline">
+      <span class="trends__label">Aggregation</span>
+      <div class="trends__toggle">
+        @for (option of aggregationOptions; track option) {
+          <app-button
+            [attr.data-testid]="'aggregation-' + option"
+            [variant]="aggregation() === option ? 'primary' : 'secondary'"
+            (click)="setAggregation(option)"
+          >
+            {{ aggregationLabels[option] }}
+          </app-button>
+        }
+      </div>
     </div>
   </div>
 
   <div class="trends__section">
-    <span class="trends__label">Currencies</span>
+    <span class="trends__label">Currencies (up to {{ maxSelection }})</span>
     <div class="trends__chips">
       @for (currency of currencyOptions; track currency.code) {
         <app-button
@@ -42,7 +43,7 @@
     }
   </div>
 
-  @if (selected().length > 0) {
+  @if (selected().length > 0 && hasSeries()) {
     <div class="trends__chart">
       <app-chart [labels]="chartLabels()" [datasets]="chartDatasets()" />
     </div>
@@ -68,6 +69,8 @@
         }
       </tbody>
     </table>
+  } @else if (selected().length > 0) {
+    <p class="trends__empty">No historical data available for the selected currencies.</p>
   } @else {
     <p class="trends__empty">Select a currency to view trends.</p>
   }

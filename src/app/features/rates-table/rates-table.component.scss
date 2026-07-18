@@ -4,7 +4,19 @@
     flex-wrap: wrap;
     align-items: flex-end;
     gap: var(--sp-lg);
-    margin-bottom: var(--sp-xl);
+    position: sticky;
+    top: var(--nav-height);
+    z-index: 10;
+    background-color: var(--color-canvas);
+    // Pull up over the card's own top padding and re-add it as our own
+    // padding, so this bar's opaque background — not the card's padding —
+    // is what covers the strip directly under the sticky nav. Otherwise
+    // that strip is empty card padding and scrolled-past rows show through.
+    margin-top: calc(-1 * var(--sp-2xl));
+    padding-top: var(--sp-2xl);
+    padding-bottom: var(--sp-lg);
+    margin-bottom: var(--sp-md);
+    border-bottom: 1px solid var(--color-canvas-soft);
   }
 
   &__search {
@@ -27,11 +39,20 @@
     box-sizing: border-box;
     border: 1px solid var(--color-ink);
     border-radius: var(--rd-md);
-    padding: var(--sp-md) var(--sp-lg);
+    padding: var(--sp-md) calc(var(--sp-xl) + var(--sp-md)) var(--sp-md) var(--sp-lg);
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font: var(--text-body-md);
     cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: var(--select-arrow);
+    background-repeat: no-repeat;
+    background-position: right var(--sp-lg) center;
+    background-size: 12px 8px;
 
     &:focus {
       outline: 2px solid var(--color-primary);
@@ -53,22 +74,41 @@
     td {
       padding: var(--sp-md) var(--sp-lg);
       text-align: left;
-      border-bottom: 1px solid var(--color-ink);
     }
 
     th {
-      font: var(--text-body-sm-strong);
+      padding-bottom: var(--sp-sm);
+      font: var(--text-caption);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-mute);
       white-space: nowrap;
+      border-bottom: 2px solid var(--color-ink);
+    }
+
+    td {
+      border-bottom: 1px solid var(--color-canvas-soft);
     }
   }
 
   &__row {
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background-color 0.15s ease;
+
+    td:first-child {
+      border-left: 3px solid transparent;
+      transition: border-left-color 0.15s ease;
+    }
 
     &:hover,
     &:focus {
-      background-color: var(--color-canvas-soft);
+      background-color: var(--color-primary-pale);
+    }
+
+    &:hover td:first-child,
+    &:focus td:first-child {
+      border-left-color: var(--color-primary);
     }
 
     &:focus {
@@ -100,5 +140,171 @@
     @media (max-width: 767px) {
       display: none;
     }
+  }
+
+  &__delta-col {
+    white-space: nowrap;
+  }
+
+  &__table th.rates-table__delta-col {
+    text-transform: none;
+  }
+
+  // Below 767px the table can't fit Currency/Rate/Change side by side without
+  // forcing the whole page to scroll horizontally. Header stays a wrapping
+  // row of sort controls (decoupled from row width, so sorting still works);
+  // body rows become stacked cards with inline data-labels standing in for
+  // the now-hidden column headers.
+  @media (max-width: 767px) {
+    &__table {
+      display: block;
+    }
+
+    &__table thead {
+      display: block;
+    }
+
+    &__table thead tr {
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: var(--sp-lg);
+      row-gap: var(--sp-xs);
+    }
+
+    &__table thead th:not(&__base-col) {
+      display: block;
+      padding: 0 0 var(--sp-sm);
+      border-bottom: none;
+    }
+
+    &__table tbody {
+      display: block;
+    }
+
+    &__row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-xs);
+      padding: var(--sp-md) 0;
+    }
+
+    &__row td:not(&__base-col) {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0;
+      width: auto;
+    }
+
+    &__row td[data-label]::before {
+      content: attr(data-label);
+      font: var(--text-caption);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--color-mute);
+    }
+
+    &__row td:first-child {
+      display: block;
+    }
+  }
+
+  &__delta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-xxs);
+    font: var(--text-body-sm-strong);
+
+    &--up {
+      color: var(--color-positive-deep);
+    }
+
+    &--down {
+      color: var(--color-negative-deep);
+    }
+
+    &--flat {
+      color: var(--color-mute);
+    }
+  }
+
+}
+
+// Sort header controls: the directive renders a button + indicator span
+// inside each [appSortHeader] th, appended via Renderer2. `.rates-table` is a
+// bare BEM root that is never applied to an actual element in this
+// component's template (only its `__x` children are) — nesting ::ng-deep
+// under it compiles to a descendant selector that can never match anything.
+// Anchor on :host instead, which always resolves to <app-rates-table>.
+:host ::ng-deep {
+  .sort-header__button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    margin: calc(-1 * var(--sp-xxs)) calc(-1 * var(--sp-sm));
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    border-radius: var(--rd-sm);
+    background: none;
+    padding: var(--sp-xxs) var(--sp-sm);
+    font: inherit;
+    font-weight: inherit;
+    color: inherit;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+
+    // Header labels double as tap-to-sort controls; below 767px they're
+    // touch targets, not just mouse-hover labels, so they need real height.
+    @media (max-width: 767px) {
+      min-height: 2.75rem;
+      margin: 0 calc(-1 * var(--sp-sm));
+      padding: 0 var(--sp-sm);
+    }
+  }
+
+  .sort-header__button:hover {
+    background-color: var(--color-canvas-soft);
+    color: var(--color-ink);
+  }
+
+  .sort-header__indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 0.75rem;
+    line-height: 1;
+  }
+
+  .sort-header__indicator:empty::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+    opacity: 0.35;
+    transition: opacity 0.15s ease;
+  }
+
+  .sort-header__button:hover .sort-header__indicator:empty::after {
+    opacity: 0.7;
+  }
+
+  th[aria-sort='ascending'],
+  th[aria-sort='descending'] {
+    color: var(--color-ink);
+  }
+
+  th[aria-sort='ascending'] .sort-header__button,
+  th[aria-sort='descending'] .sort-header__button {
+    font-weight: 700;
+  }
+
+  th[aria-sort='ascending'] .sort-header__indicator,
+  th[aria-sort='descending'] .sort-header__indicator {
+    color: var(--color-positive-deep);
+    opacity: 1;
   }
 }

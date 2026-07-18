@@ -1,11 +1,13 @@
 .card {
   border-radius: var(--rd-xl);
-  padding: var(--sp-xl);
+  padding: var(--sp-2xl);
   font: var(--text-body-md);
 
   &--content {
     background-color: var(--color-canvas);
     color: var(--color-ink);
+    border: 1px solid var(--color-canvas-soft);
+    box-shadow: var(--shadow-card);
   }
 
   &--feature-sage {
@@ -19,7 +21,15 @@
   }
 
   &--feature-dark {
-    background-color: var(--color-ink);
+    background-color: var(--color-ink-fixed);
     color: var(--color-primary);
+  }
+
+  &--currency-converter {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    padding: var(--sp-2xl);
+    border: 1px solid var(--color-canvas-soft);
+    box-shadow: var(--shadow-card);
   }
 }

@@ -46,6 +46,7 @@ Thumbs.db
 
 # Local env / secrets
 /src/environments/environment.prod.ts.local
+/src/environments/environment.development.ts
 .env
 *.local
 
@@ -55,3 +56,5 @@ Thumbs.db
 /cypress/screenshots
 /cypress/downloads
 .playwright-mcp/
+.playwright-cli/
+/playwright-screenshots/

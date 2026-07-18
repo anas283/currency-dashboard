@@ -1,9 +1,11 @@
 <div class="chart-wrapper">
-  <canvas
-    #chartCanvas
-    role="img"
-    aria-label="Line chart showing currency trend data"
-  ></canvas>
+  <div class="chart-canvas-box">
+    <canvas
+      #chartCanvas
+      role="img"
+      aria-label="Line chart showing currency trend data"
+    ></canvas>
+  </div>
 
   @if (datasets().length > 0) {
     <ul class="chart-legend" aria-label="Chart legend">

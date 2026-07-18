@@ -1,0 +1,1879 @@
+╭─── Claude Code v2.1.212 ─────────────────────────────────────────────────────╮
+│                                                    │ Tips for getting        │
+│                 Welcome back Anas!                 │ started                 │
+│                                                    │ Run /init to create a … │
+│                      ▗ ▗   ▖ ▖                     │ ─────────────────────── │
+│                                                    │ What's new              │
+│                        ▘▘ ▝▝                       │ `/fork` now copies you… │
+│    Sonnet 5 · Claude Pro ·                         │ Added `claude auto-mod… │
+│    muhammadanasbinadam@gmail.com's Organization    │ Added a session-wide l… │
+│       ~/Desktop/interview/currency-dashboard       │ /release-notes for more │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+ ▎ Extended through July 19
+ ▎ We're extending Claude Fable 5 access on all paid plans, as well as keeping Claude Code’s weekly rate limits 50% higher, through July 19.
+ ▎
+ ▎ As before, you can use up to half of your weekly usage limit on Fable 5. After that, you can keep using Fable 5 with usage credits, or switch to another model to keep working within your remaining limits.
+ ▎
+ ▎ More details here: https://support.claude.com/en/articles/15424964-claude-fable-5-promotional-access
+
+❯ Re-skin the dashboard from a marketing-hero layout to a dashboard-first       
+  layout, keeping DESIGN.md's color/type/spacing/radius tokens but changing     
+  structure and component roles:                                                
+                                                                                
+  1. Header/toolbar: replace the sage hero band + giant display-mega headline   
+  with a compact top toolbar (single row, no scroll needed). Include: logo,     
+  nav, live/offline status badge, last-updated timestamp, theme toggle — all    
+  visible without scrolling.                                                    
+                                                                                
+  2. Converter: convert from a one-off hero card into a persistent widget —     
+  either a fixed sidebar panel or a sticky card — so it stays usable while      
+  scrolling the table/chart. Drop the oversized marketing-card treatment; keep  
+  it compact and functional.                                                    
+                                                                                
+  3. Rate table: give it primary real estate (top of content area, not buried   
+  below hero). Add:                                                             
+     - Sortable column headers (currency code, rate, base) with visible sort    
+  affordance.                                                                   
+     - Colored rate-change deltas (green up / red down) per row if historical   
+  data available.                                                               
+     - Sticky search/filter bar above the table.                                
+                                                                                
+  4. Trend chart: present as its own clear card with the 3-currency selector    
+  and daily/weekly/monthly toggle visible together, not a secondary/buried      
+  panel.                                                                        
+                                                                                
+  5. Offline mode: add an explicit, visible banner or badge state (not just     
+  implied by stale timestamps) when running on cached data — must clearly read  
+  "not live" per assessment requirement.                                        
+                                                                                
+  6. Remove: display-mega/display-xxl hero typography, marketing copy tone,     
+  full-bleed sage band as page-opening element. Keep: primary green accent,     
+  rounded-xl cards, Inter body type, existing semantic color tokens             
+  (positive/warning/negative) for rate deltas and status badges.                
+                                                                                
+  Goal: read as a data tool a user opens daily, not a landing page — density    
+  and status-legibility over brand spectacle.                                   
+
+⏺ Look at repo structure and DESIGN.md first.
+
+  Searched for 1 pattern, read 4 files (ctrl+o to expand)
+
+⏺ Now the templates/styles for these and remaining components.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Now converter, rates-table, trends, offline-indicator, chart, footer, card,
+  badge, button, text-input, sort-header directive, pipes, and global
+  styles/tokens.
+
+  Searched for 3 patterns, read 8 files, ran 9 shell commands (ctrl+o to expand)
+
+⏺ Big multi-file re-skin. Track it, then build.
+⏺ Starting with the toolbar and offline-indicator changes.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/features/offline-indicator/offline-indicator.component.ts)
+  ⎿  Added 5 lines
+      59      return current === 'live' || current === 'polling' ? 'posit
+          ive' : 'negative';
+      60    });
+      61  
+      62 +  readonly isLive = computed<boolean>(() => {                  
+      63 +    const current = this.realtimeService.status();             
+      64 +    return current === 'live' || current === 'polling';        
+      65 +  });                                                          
+      66 +                                                               
+      67    readonly label = computed<string>(() => {
+      68      const current = this.realtimeService.status();
+      69      const lastUpdated = this.realtimeService.lastUpdated();
+
+⏺ Write(src/app/features/offline-indicator/offline-indicator.component.html)
+  ⎿  Error writing file
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Update(src/app/features/offline-indicator/offline-indicator.component.html)
+  ⎿  Added 3 lines
+      1  <app-badge data-testid="offline-badge" [variant]="variant()">{{ 
+         label() }}</app-badge>
+      2 +@if (!isLive()) {                                               
+      3 +  <span class="offline-indicator__not-live" data-testid="not-liv
+        +e-flag">Not live</span>                                         
+      4 +}                                                               
+
+⏺ Update(src/app/features/offline-indicator/offline-indicator.component.scss)
+  ⎿  Added 15 lines
+       1  :host {
+       2    display: inline-flex;
+       3 +  align-items: center;                                         
+       4 +  gap: var(--sp-sm);                                           
+       5  }
+       6 +                                                               
+       7 +.offline-indicator__not-live {                                 
+       8 +  display: inline-flex;                                        
+       9 +  align-items: center;                                         
+      10 +  border-radius: var(--rd-sm);                                 
+      11 +  padding: var(--sp-xxs) var(--sp-sm);                         
+      12 +  border: 1px solid var(--color-negative-deep);                
+      13 +  color: var(--color-negative-deep);                           
+      14 +  font: var(--text-caption);                                   
+      15 +  font-weight: 600;                                            
+      16 +  text-transform: uppercase;                                   
+      17 +  letter-spacing: 0.04em;                                      
+      18 +}                                                              
+
+⏺ Task 2 done. Now the toolbar: rebuild nav-bar to include status + last-updated
+  timestamp.
+
+⏺ Write(src/app/ui/nav-bar/nav-bar.component.ts)
+  ⎿  Added 18 lines, removed 1 line
+      1  import {
+      2    ChangeDetectionStrategy,
+      3    Component,
+      4 +  computed,                                                     
+      5    inject,
+      6    signal,
+      7  } from '@angular/core';
+     ...
+       9  import { RouterLink, RouterLinkActive } from '@angular/router';
+      10  
+      11  import { ThemeService } from '../../core/services/theme.service
+          ';
+      12 +import { RealtimeService } from '../../core/services/realtime.s
+         +ervice';                                                       
+      13 +import { OfflineIndicatorComponent } from '../../features/offli
+         +ne-indicator/offline-indicator.component';                     
+      14  
+      15  interface NavLink {
+      16    label: string;
+      17    path: string;
+      18  }
+      19  
+      20 +const TIME_FORMATTER = new Intl.DateTimeFormat(undefined, {    
+      21 +  hour: 'numeric',                                             
+      22 +  minute: '2-digit',                                           
+      23 +});                                                            
+      24 +                                                               
+      25  @Component({
+      26    selector: 'app-nav-bar',
+      27    standalone: true,
+      20 -  imports: [RouterLink, RouterLinkActive],                     
+      28 +  imports: [RouterLink, RouterLinkActive, OfflineIndicatorCompo
+         +nent],                                                         
+      29    templateUrl: './nav-bar.component.html',
+      30    styleUrl: './nav-bar.component.scss',
+      31    changeDetection: ChangeDetectionStrategy.OnPush,
+      32  })
+      33  export class NavBarComponent {
+      34    protected readonly themeService = inject(ThemeService);
+      35 +  protected readonly realtimeService = inject(RealtimeService);
+      36    protected readonly links = signal<NavLink[]>([
+      37      { label: 'Dashboard', path: '/' },
+      38      { label: 'Rates', path: '/rates' },
+      39      { label: 'Trends', path: '/trends' },
+      40      { label: 'Converter', path: '/converter' },
+      41    ]);
+      42 +                                                               
+      43 +  protected readonly lastUpdatedLabel = computed<string | null>
+         +(() => {                                                       
+      44 +    const timestamp = this.realtimeService.lastUpdated();      
+      45 +    if (timestamp === null) {                                  
+      46 +      return null;                                             
+      47 +    }                                                          
+      48 +    return `Updated ${TIME_FORMATTER.format(new Date(timestamp)
+         +)}`;                                                           
+      49 +  });                                                          
+      50  }
+
+⏺ Write(src/app/ui/nav-bar/nav-bar.component.html)
+  ⎿  Error writing file
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Write(src/app/ui/nav-bar/nav-bar.component.html)
+  ⎿  Added 11 lines, removed 1 line
+      1  <header class="nav-bar">
+      2 -  <div class="nav-bar__brand">CurrencyDashboard</div>           
+      2 +  <div class="nav-bar__brand">                                  
+      3 +    <span class="nav-bar__logo-mark" aria-hidden="true">$</span>
+      4 +    CurrencyDashboard                                           
+      5 +  </div>                                                        
+      6  
+      7    <nav class="nav-bar__nav" aria-label="Main">
+      8      @for (link of links(); track link.path) {
+     ...
+      17      }
+      18    </nav>
+      19  
+      20 +  <div class="nav-bar__status">                                
+      21 +    <app-offline-indicator />                                  
+      22 +    @if (lastUpdatedLabel(); as label) {                       
+      23 +      <span class="nav-bar__updated">{{ label }}</span>        
+      24 +    }                                                          
+      25 +  </div>                                                       
+      26 +                                                               
+      27    <button
+      28      class="nav-bar__toggle"
+      29      type="button"
+
+⏺ Now the toolbar styles — single row, no wrap, compact density.
+
+⏺ Write(src/app/ui/nav-bar/nav-bar.component.scss)
+  ⎿  Error writing file
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Write(src/app/ui/nav-bar/nav-bar.component.scss)
+  ⎿  Added 41 lines, removed 15 lines
+       3    top: 0;
+       4    z-index: 100;
+       5    display: flex;
+       6 -  flex-wrap: wrap;                                             
+       6    align-items: center;
+       8 -  justify-content: space-between;                              
+       9 -  gap: var(--sp-lg);                                           
+       7 +  gap: var(--sp-xl);                                           
+       8    background-color: var(--color-canvas);
+       9    color: var(--color-ink);
+      10    padding: var(--sp-md) var(--sp-xl);
+      11    border-bottom: 1px solid var(--color-canvas-soft);
+      12 +  overflow-x: auto;                                            
+      13  
+      14    &__brand {
+      15 +    display: inline-flex;                                      
+      16 +    align-items: center;                                       
+      17 +    gap: var(--sp-sm);                                         
+      18 +    flex: 0 0 auto;                                            
+      19      font: var(--text-body-md-strong);
+      20 +    white-space: nowrap;                                       
+      21    }
+      22  
+      23 +  &__logo-mark {                                               
+      24 +    display: inline-flex;                                      
+      25 +    align-items: center;                                       
+      26 +    justify-content: center;                                   
+      27 +    width: 1.75rem;                                            
+      28 +    height: 1.75rem;                                           
+      29 +    border-radius: var(--rd-sm);                               
+      30 +    background-color: var(--color-primary);                    
+      31 +    color: var(--color-on-primary);                            
+      32 +    font-weight: 900;                                          
+      33 +  }                                                            
+      34 +                                                               
+      35    &__nav {
+      36      display: flex;
+      21 -    flex-wrap: wrap;                                           
+      37      align-items: center;
+      38      gap: var(--sp-lg);
+      24 -    margin-inline: auto;                                       
+      25 -                                                               
+      26 -    @media (max-width: 767px) {                                
+      27 -      order: 3;                                                
+      28 -      width: 100%;                                             
+      29 -      margin-inline: 0;                                        
+      30 -      justify-content: flex-start;                             
+      31 -      gap: var(--sp-md);                                       
+      32 -    }                                                          
+      39 +    flex: 0 0 auto;                                            
+      40 +    white-space: nowrap;                                       
+      41    }
+      42  
+      43    &__link {
+      44      font: var(--text-body-sm-strong);
+      37 -    color: var(--color-ink);                                   
+      45 +    color: var(--color-mute);                                  
+      46      text-decoration: none;
+      47  
+      48      &:hover,
+      49      &--active {
+      50 +      color: var(--color-ink);                                 
+      51        text-decoration: underline;
+      52      }
+      53    }
+      54  
+      55 +  &__status {                                                  
+      56 +    display: flex;                                             
+      57 +    align-items: center;                                       
+      58 +    gap: var(--sp-md);                                         
+      59 +    margin-inline-start: auto;                                 
+      60 +    flex: 0 1 auto;                                            
+      61 +    white-space: nowrap;                                       
+      62 +  }                                                            
+      63 +                                                               
+      64 +  &__updated {                                                 
+      65 +    color: var(--color-mute);                                  
+      66 +    font: var(--text-caption);                                 
+      67 +    white-space: nowrap;                                       
+      68 +  }                                                            
+      69 +                                                               
+      70    &__toggle {
+      71 +    flex: 0 0 auto;                                            
+      72      border: 1px solid var(--color-ink);
+      73      border-radius: var(--rd-xl);
+      49 -    padding: var(--sp-sm) var(--sp-md);                        
+      74 +    padding: var(--sp-xs) var(--sp-md);                        
+      75      background-color: var(--color-canvas);
+      76      color: var(--color-ink);
+      77      font: var(--text-body-sm-strong);
+      78      cursor: pointer;
+      79 +    white-space: nowrap;                                       
+      80    }
+      81  }
+
+⏺ Toolbar done. Now removing hero-band and rebuilding home layout.
+
+  Ran 1 shell command (ctrl+o to expand)
+  Read 3 files (ctrl+o to expand)
+
+⏺ Write(src/app/features/home/home.component.ts)
+  ⎿  Added 1 line, removed 9 lines
+       3  import { ConverterComponent } from '../converter/converter.comp
+          onent';
+       4  import { RatesTableComponent } from '../rates-table/rates-table
+          .component';
+       5  import { TrendsComponent } from '../trends/trends.component';
+       6 -import { OfflineIndicatorComponent } from '../offline-indicator
+         -/offline-indicator.component';                                 
+       7 -import { HeroBandComponent } from '../../ui/hero-band/hero-band
+         -.component';                                                   
+       6  
+       7  @Component({
+       8    selector: 'app-home',
+       9    standalone: true,
+      12 -  imports: [                                                   
+      13 -    ConverterComponent,                                        
+      14 -    RatesTableComponent,                                       
+      15 -    TrendsComponent,                                           
+      16 -    OfflineIndicatorComponent,                                 
+      17 -    HeroBandComponent,                                         
+      18 -  ],                                                           
+      10 +  imports: [ConverterComponent, RatesTableComponent, TrendsComp
+         +onent],                                                        
+      11    templateUrl: './home.component.html',
+      12    styleUrl: './home.component.scss',
+      13    changeDetection: ChangeDetectionStrategy.OnPush,
+
+⏺ Write(src/app/features/home/home.component.html)
+  ⎿  Added 8 lines, removed 12 lines
+       1 -<div class="home__status">                                     
+       2 -  <app-offline-indicator />                                    
+       3 -</div>                                                         
+       4 -                                                               
+       5 -<app-hero-band headline="Currency Exchange Dashboard">         
+       6 -  <div class="home__hero-content">                             
+       1 +<div class="home">                                             
+       2 +  <aside class="home__sidebar">                                
+       3      <app-converter class="home__converter" />
+       8 -  </div>                                                       
+       9 -</app-hero-band>                                               
+       4 +  </aside>                                                     
+       5  
+      11 -<section class="home__sections">                               
+      12 -  <app-rates-table class="home__rates" />                      
+      13 -  <app-trends class="home__trends" />                          
+      14 -</section>                                                     
+       6 +  <div class="home__content">                                  
+       7 +    <app-rates-table class="home__rates" />                    
+       8 +    <app-trends class="home__trends" />                        
+       9 +  </div>                                                       
+      10 +</div>                                                         
+
+⏺ Write(src/app/features/home/home.component.scss)
+  ⎿  Added 16 lines, removed 25 lines
+       2    display: block;
+       3  }
+       4  
+       5 -.home__status {                                                
+       6 -  display: flex;                                               
+       7 -  justify-content: flex-end;                                   
+       8 -  gap: var(--sp-md);                                           
+       9 -  padding: var(--sp-md) var(--sp-xl);                          
+      10 -  max-width: 75rem;                                            
+       5 +.home {                                                        
+       6 +  display: grid;                                               
+       7 +  gap: var(--sp-xl);                                           
+       8 +  padding: var(--sp-xl);                                       
+       9 +  max-width: 90rem;                                            
+      10    margin-inline: auto;
+      11  }
+      12  
+      14 -.home__hero-content {                                          
+      15 -  display: flex;                                               
+      16 -  justify-content: center;                                     
+      13 +.home__sidebar {                                               
+      14 +  min-width: 0;                                                
+      15  }
+      16  
+      19 -.home__converter {                                             
+      20 -  width: 100%;                                                 
+      21 -  max-width: 28rem;                                            
+      22 -}                                                              
+      23 -                                                               
+      24 -.home__sections {                                              
+      17 +.home__content {                                               
+      18    display: grid;
+      19    gap: var(--sp-xl);
+      27 -  padding: var(--sp-xl);                                       
+      28 -  max-width: 75rem;                                            
+      29 -  margin-inline: auto;                                         
+      20 +  min-width: 0;                                                
+      21  }
+      22  
+      32 -@media (min-width: 48rem) {                                    
+      33 -  .home__hero-content {                                        
+      34 -    justify-content: flex-end;                                 
+      23 +@media (min-width: 64rem) {                                    
+      24 +  .home {                                                      
+      25 +    grid-template-columns: 20rem 1fr;                          
+      26 +    align-items: start;                                        
+      27    }
+      36 -}                                                              
+      28  
+      38 -@media (min-width: 64rem) {                                    
+      39 -  .home__sections {                                            
+      40 -    grid-template-columns: 2fr 1fr;                            
+      29 +  .home__sidebar {                                             
+      30 +    position: sticky;                                          
+      31 +    top: calc(4.5rem + var(--sp-lg));                          
+      32    }
+      33  }
+
+⏺ Task 3 done. Now the converter — compact sticky widget styling.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Write(src/app/features/converter/converter.component.html)
+  ⎿  Added 40 lines, removed 38 lines
+       1  <app-card variant="currency-converter">
+       2    <div class="converter">
+       3 -    <div class="converter__row">                               
+       4 -      <app-text-input                                          
+       5 -        class="converter__amount"                              
+       6 -        label="Amount"                                         
+       7 -        type="number"                                          
+       8 -        min="0"                                                
+       9 -        [value]="amount() + ''"                                
+      10 -        (valueChange)="onAmountChange($event)"                 
+      11 -      />                                                       
+       3 +    <h2 class="converter__title">Convert</h2>                  
+       4  
+      13 -      <div class="converter__field">                           
+      14 -        <label class="converter__label" for="converter-from">Fr
+         -om</label>                                                     
+      15 -        <select                                                
+      16 -          class="converter__select"                            
+      17 -          id="converter-from"                                  
+      18 -          (change)="onFromChange($event)"                      
+      19 -        >                                                      
+      20 -          @for (currency of options(); track currency.code) {  
+      21 -            <option [value]="currency.code" [selected]="currenc
+         -y.code === from()">                                            
+      22 -              {{ currency.flag }} {{ currency.code }} — {{ curr
+         -ency.name }}                                                   
+      23 -            </option>                                          
+      24 -          }                                                    
+      25 -        </select>                                              
+      26 -      </div>                                                   
+       5 +    <app-text-input                                            
+       6 +      class="converter__amount"                                
+       7 +      label="Amount"                                           
+       8 +      type="number"                                            
+       9 +      min="0"                                                  
+      10 +      [value]="amount() + ''"                                  
+      11 +      (valueChange)="onAmountChange($event)"                   
+      12 +    />                                                         
+      13  
+      14 +    <div class="converter__field">                             
+      15 +      <label class="converter__label" for="converter-from">From
+         +</label>                                                       
+      16 +      <select                                                  
+      17 +        class="converter__select"                              
+      18 +        id="converter-from"                                    
+      19 +        (change)="onFromChange($event)"                        
+      20 +      >                                                        
+      21 +        @for (currency of options(); track currency.code) {    
+      22 +          <option [value]="currency.code" [selected]="currency.
+         +code === from()">                                              
+      23 +            {{ currency.flag }} {{ currency.code }} — {{ curren
+         +cy.name }}                                                     
+      24 +          </option>                                            
+      25 +        }                                                      
+      26 +      </select>                                                
+      27 +    </div>                                                     
+      28 +                                                               
+      29 +    <div class="converter__swap-row">                          
+      30        <app-button
+      31          class="converter__swap"
+      32          data-testid="swap-button"
+     ...
+      34          variant="secondary"
+      35          (click)="swap()"
+      36        >
+      35 -        Swap                                                   
+      37 +        ⇅ Swap                                                 
+      38        </app-button>
+      39 +    </div>                                                     
+      40  
+      38 -      <div class="converter__field">                           
+      39 -        <label class="converter__label" for="converter-to">To</
+         -label>                                                         
+      40 -        <select                                                
+      41 -          class="converter__select"                            
+      42 -          id="converter-to"                                    
+      43 -          (change)="onToChange($event)"                        
+      44 -        >                                                      
+      45 -          @for (currency of options(); track currency.code) {  
+      46 -            <option [value]="currency.code" [selected]="currenc
+         -y.code === to()">                                              
+      47 -              {{ currency.flag }} {{ currency.code }} — {{ curr
+         -ency.name }}                                                   
+      48 -            </option>                                          
+      49 -          }                                                    
+      50 -        </select>                                              
+      51 -      </div>                                                   
+      41 +    <div class="converter__field">                             
+      42 +      <label class="converter__label" for="converter-to">To</la
+         +bel>                                                           
+      43 +      <select                                                  
+      44 +        class="converter__select"                              
+      45 +        id="converter-to"                                      
+      46 +        (change)="onToChange($event)"                          
+      47 +      >                                                        
+      48 +        @for (currency of options(); track currency.code) {    
+      49 +          <option [value]="currency.code" [selected]="currency.
+         +code === to()">                                                
+      50 +            {{ currency.flag }} {{ currency.code }} — {{ curren
+         +cy.name }}                                                     
+      51 +          </option>                                            
+      52 +        }                                                      
+      53 +      </select>                                                
+      54      </div>
+      55  
+      56      <div class="converter__result" data-testid="converter-resul
+          t">
+
+⏺ Write(src/app/features/converter/converter.component.scss)
+  ⎿  Added 21 lines, removed 15 lines
+       1  .converter {
+       2 -  &__row {                                                     
+       3 -    display: flex;                                             
+       4 -    align-items: flex-end;                                     
+       5 -    flex-wrap: wrap;                                           
+       6 -    gap: var(--sp-md);                                         
+       7 -  }                                                            
+       2 +  display: flex;                                               
+       3 +  flex-direction: column;                                      
+       4 +  gap: var(--sp-md);                                           
+       5  
+       9 -  &__amount {                                                  
+      10 -    flex: 1 1 8rem;                                            
+      11 -    min-width: 6rem;                                           
+       6 +  &__title {                                                   
+       7 +    margin: 0;                                                 
+       8 +    font: var(--text-body-sm-strong);                          
+       9 +    text-transform: uppercase;                                 
+      10 +    letter-spacing: 0.04em;                                    
+      11 +    color: var(--color-mute);                                  
+      12    }
+      13  
+      14    &__field {
+      15      display: flex;
+      16 -    flex: 1 1 10rem;                                           
+      16      flex-direction: column;
+      17      gap: var(--sp-xs);
+      19 -    min-width: 8rem;                                           
+      18    }
+      19  
+      20    &__label {
+      23 -    color: var(--color-ink-soft);                              
+      21 +    color: var(--color-mute);                                  
+      22      font: var(--text-body-sm);
+      23    }
+      24  
+      25    &__select {
+      26      width: 100%;
+      29 -    padding: var(--sp-md) var(--sp-lg);                        
+      27 +    box-sizing: border-box;                                    
+      28 +    padding: var(--sp-sm) var(--sp-md);                        
+      29      border: 1px solid var(--color-ink);
+      30      border-radius: var(--rd-md);
+      31      background-color: var(--color-canvas);
+     ...
+      33      font: var(--text-body-md);
+      34    }
+      35  
+      36 +  &__swap-row {                                                
+      37 +    display: flex;                                             
+      38 +    justify-content: center;                                   
+      39 +  }                                                            
+      40 +                                                               
+      41    &__swap {
+      42      flex: 0 0 auto;
+      43    }
+      44  
+      45    &__result {
+      42 -    margin-top: var(--sp-lg);                                  
+      46 +    margin-top: var(--sp-xs);                                  
+      47 +    padding-top: var(--sp-md);                                 
+      48 +    border-top: 1px solid var(--color-canvas-soft);            
+      49    }
+      50  
+      51    &__value {
+      46 -    font: var(--text-display-md);                              
+      52 +    font: var(--text-display-xs);                              
+      53    }
+      54  }
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/features/rates-table/rates-table.component.ts)
+  ⎿  Added 11 lines, removed 1 line
+       1 -import { ChangeDetectionStrategy, Component, computed, inject, 
+         -signal } from '@angular/core';                                 
+       1 +import { ChangeDetectionStrategy, Component, computed, effect, 
+         +inject, signal } from '@angular/core';                         
+       2  import { DecimalPipe } from '@angular/common';
+       3  import { Router } from '@angular/router';
+       4  
+       5  import { Currency, CURATED_TOP_30 } from '../../core/models/cur
+          rency';
+       6 +import { HistoryResponse } from '../../core/models/api.types'; 
+       7 +import { CacheService } from '../../core/services/cache.service
+         +';                                                             
+       8  import { RatesService } from '../../core/services/rates.service
+          ';
+       9  import { SortChange, SortHeaderDirective } from '../../shared/d
+          irectives/sort-header.directive';
+      10  import { SortDirection } from '../../shared/pipes/sort.pipe';
+     ...
+      15  interface RateRow extends Currency {
+      16    rate: number;
+      17    base: string;
+      18 +  delta: number | null;                                        
+      19  }
+      20  
+      21 +function yesterdayDateKey(): string {                          
+      22 +  const now = new Date();                                      
+      23 +  const today = new Date(Date.UTC(now.getUTCFullYear(), now.get
+         +UTCMonth(), now.getUTCDate()));                                
+      24 +  today.setUTCDate(today.getUTCDate() - 1);                    
+      25 +  return today.toISOString().slice(0, 10);                     
+      26 +}                                                              
+      27 +                                                               
+      28  @Component({
+      29    selector: 'app-rates-table',
+      30    standalone: true,
+
+⏺ Update(src/app/features/rates-table/rates-table.component.ts)
+  ⎿  Added 19 lines
+      42  export class RatesTableComponent {
+      43    readonly ratesService = inject(RatesService);
+      44    private readonly router = inject(Router);
+      45 +  private readonly cache = inject(CacheService);               
+      46  
+      47    readonly search = signal('');
+      48    readonly sortKey = signal<string>('code');
+     ...
+      51  
+      52    private readonly currencyMeta = new Map(CURATED_TOP_30.map((c
+          urrency) => [currency.code, currency]));
+      53  
+      54 +  // Best-effort day-over-day delta: reads yesterday's cached s
+         +napshot for the                                                
+      55 +  // current base out of IndexedDB (populated by HistoryService
+         +) with no                                                      
+      56 +  // network call. Absent from cache simply means no delta is s
+         +hown.                                                          
+      57 +  readonly previousRates = signal<Record<string, number> | null
+         +>(null);                                                       
+      58 +                                                               
+      59 +  constructor() {                                              
+      60 +    effect(() => {                                             
+      61 +      const base = this.ratesService.base();                   
+      62 +      const key = `history::${base}::${yesterdayDateKey()}`;   
+      63 +      this.previousRates.set(null);                            
+      64 +      void this.cache.get<HistoryResponse>(key).then((entry) =>
+         + {                                                             
+      65 +        if (entry.value) {                                     
+      66 +          this.previousRates.set(entry.value.conversion_rates);
+      67 +        }                                                      
+      68 +      });                                                      
+      69 +    });                                                        
+      70 +  }                                                            
+      71 +                                                               
+      72    readonly baseOptions = computed(() => {
+      73      const snapshot = this.ratesService.snapshot();
+      74      if (snapshot) {
+
+⏺ Now update rows computed to include delta:
+
+⏺ Update(src/app/features/rates-table/rates-table.component.ts)
+  ⎿  Added 8 lines, removed 1 line
+      84      }
+      85  
+      86      const base = this.ratesService.base();
+      87 +    const previous = this.previousRates();                     
+      88      const sourceCodes = this.showAll()
+      89        ? Object.keys(snapshot.conversion_rates)
+      90        : CURATED_TOP_30.map((currency) => currency.code);
+     ...
+       93        .filter((code) => code in snapshot.conversion_rates)
+       94        .map((code) => {
+       95          const meta = this.currencyMeta.get(code);
+       96 +        const rate = snapshot.conversion_rates[code];         
+       97 +        const previousRate = previous?.[code];                
+       98 +        const delta =                                         
+       99 +          previousRate != null && previousRate !== 0 ? (rate -
+          + previousRate) / previousRate : null;                         
+      100 +                                                              
+      101          return {
+      102            code,
+      103            name: meta?.name ?? code,
+      104            flag: meta?.flag ?? '',
+       99 -          rate: snapshot.conversion_rates[code],              
+      105 +          rate,                                               
+      106            base,
+      107 +          delta,                                              
+      108          };
+      109        });
+      110    });
+
+  Read 1 file (ctrl+o to expand)
+⏺ Update(src/app/features/rates-table/rates-table.component.html)
+  ⎿  Added 1 line
+      62            >
+      63              Rate
+      64            </th>
+      65 +          <th class="rates-table__delta-col">Change</th>       
+      66            <th
+      67              class="rates-table__base-col"
+      68              appSortHeader
+
+⏺ Update(src/app/features/rates-table/rates-table.component.html)
+  ⎿  Added 11 lines
+       89                <span class="rates-table__name">{{ row.name }}</
+           span>
+       90              </td>
+       91              <td>{{ row.rate | number: '1.0-6' }}</td>
+       92 +            <td class="rates-table__delta-col">               
+       93 +              @if (row.delta === null) {                      
+       94 +                <span class="rates-table__delta rates-table__d
+          +elta--flat">—</span>                                          
+       95 +              } @else if (row.delta > 0) {                    
+       96 +                <span class="rates-table__delta rates-table__d
+          +elta--up">▲ {{ row.delta * 100 | number: '1.2-2' }}%</span>   
+       97 +              } @else if (row.delta < 0) {                    
+       98 +                <span class="rates-table__delta rates-table__d
+          +elta--down">▼ {{ row.delta * -100 | number: '1.2-2' }}%</span>
+       99 +              } @else {                                       
+      100 +                <span class="rates-table__delta rates-table__d
+          +elta--flat">0.00%</span>                                      
+      101 +              }                                               
+      102 +            </td>                                             
+      103              <td class="rates-table__base-col">{{ row.base }}</
+           td>
+      104            </tr>
+      105          }
+
+⏺ Now wrap controls for sticky positioning:
+
+⏺ Update(src/app/features/rates-table/rates-table.component.html)
+  ⎿  Added 1 line, removed 1 line
+      1  <app-card variant="content">
+      2 -  <div class="rates-table__controls">                           
+      2 +  <div class="rates-table__controls" data-testid="rates-table-co
+        +ntrols">                                                        
+      3      <app-text-input
+      4        class="rates-table__search"
+      5        label="Search currencies"
+
+⏺ Now the SCSS: sticky controls, delta colors, sort affordance.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Write(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 58 lines, removed 1 line
+       4      flex-wrap: wrap;
+       5      align-items: flex-end;
+       6      gap: var(--sp-lg);
+       7 -    margin-bottom: var(--sp-xl);                               
+       7 +    position: sticky;                                          
+       8 +    top: calc(4.5rem + var(--sp-lg));                          
+       9 +    z-index: 10;                                               
+      10 +    background-color: var(--color-canvas);                     
+      11 +    padding-bottom: var(--sp-lg);                              
+      12 +    margin-bottom: var(--sp-md);                               
+      13 +    border-bottom: 1px solid var(--color-canvas-soft);         
+      14    }
+      15  
+      16    &__search {
+     ...
+      107        display: none;
+      108      }
+      109    }
+      110 +                                                              
+      111 +  &__delta-col {                                              
+      112 +    white-space: nowrap;                                      
+      113 +  }                                                           
+      114 +                                                              
+      115 +  &__delta {                                                  
+      116 +    display: inline-flex;                                     
+      117 +    align-items: center;                                      
+      118 +    gap: var(--sp-xxs);                                       
+      119 +    font: var(--text-body-sm-strong);                         
+      120 +                                                              
+      121 +    &--up {                                                   
+      122 +      color: var(--color-positive-deep);                      
+      123 +    }                                                         
+      124 +                                                              
+      125 +    &--down {                                                 
+      126 +      color: var(--color-negative-deep);                      
+      127 +    }                                                         
+      128 +                                                              
+      129 +    &--flat {                                                 
+      130 +      color: var(--color-mute);                               
+      131 +    }                                                         
+      132 +  }                                                           
+      133 +                                                              
+      134 +  // Sort header affordance: the directive renders a button + 
+          +indicator span                                                
+      135 +  // inside each [appSortHeader] th. Show a faint up/down glyp
+          +h on inactive                                                 
+      136 +  // columns so sortability is discoverable without hovering. 
+      137 +  ::ng-deep {                                                 
+      138 +    .sort-header__button {                                    
+      139 +      display: inline-flex;                                   
+      140 +      align-items: center;                                    
+      141 +      gap: var(--sp-xs);                                      
+      142 +      border: 0;                                              
+      143 +      background: none;                                       
+      144 +      padding: 0;                                             
+      145 +      font: inherit;                                          
+      146 +      color: inherit;                                         
+      147 +      cursor: pointer;                                        
+      148 +    }                                                         
+      149 +                                                              
+      150 +    .sort-header__indicator {                                 
+      151 +      display: inline-flex;                                   
+      152 +      min-width: 0.75rem;                                     
+      153 +      font-size: 0.7em;                                       
+      154 +                                                              
+      155 +      &:empty::after {                                        
+      156 +        content: '⇅';                                         
+      157 +        opacity: 0.35;                                        
+      158 +      }                                                       
+      159 +    }                                                         
+      160 +  }                                                           
+      161  }
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/features/trends/trends.component.html)
+  ⎿  Added 20 lines, removed 19 lines
+       1  <app-card variant="content">
+       2 -  <h1 class="trends__title">Trends</h1>                        
+       2 +  <div class="trends__header">                                 
+       3 +    <h2 class="trends__title">Trend chart</h2>                 
+       4 +    <div class="trends__section trends__section--inline">      
+       5 +      <span class="trends__label">Base</span>                  
+       6 +      <span class="trends__base">{{ ratesService.base() }}</spa
+         +n>                                                             
+       7 +    </div>                                                     
+       8  
+       4 -  <div class="trends__section">                                
+       5 -    <span class="trends__label">Base currency</span>           
+       6 -    <span class="trends__base">{{ ratesService.base() }}</span>
+       7 -  </div>                                                       
+       8 -                                                               
+       9 -  <div class="trends__section">                                
+      10 -    <span class="trends__label">Aggregation</span>             
+      11 -    <div class="trends__toggle">                               
+      12 -      @for (option of aggregationOptions; track option) {      
+      13 -        <app-button                                            
+      14 -          [attr.data-testid]="'aggregation-' + option"         
+      15 -          [variant]="aggregation() === option ? 'primary' : 'se
+         -condary'"                                                      
+      16 -          (click)="setAggregation(option)"                     
+      17 -        >                                                      
+      18 -          {{ aggregationLabels[option] }}                      
+      19 -        </app-button>                                          
+      20 -      }                                                        
+       9 +    <div class="trends__section trends__section--inline">      
+      10 +      <span class="trends__label">Aggregation</span>           
+      11 +      <div class="trends__toggle">                             
+      12 +        @for (option of aggregationOptions; track option) {    
+      13 +          <app-button                                          
+      14 +            [attr.data-testid]="'aggregation-' + option"       
+      15 +            [variant]="aggregation() === option ? 'primary' : '
+         +secondary'"                                                    
+      16 +            (click)="setAggregation(option)"                   
+      17 +          >                                                    
+      18 +            {{ aggregationLabels[option] }}                    
+      19 +          </app-button>                                        
+      20 +        }                                                      
+      21 +      </div>                                                   
+      22      </div>
+      23    </div>
+      24  
+      25    <div class="trends__section">
+      25 -    <span class="trends__label">Currencies</span>              
+      26 +    <span class="trends__label">Currencies (up to {{ maxSelecti
+         +on }})</span>                                                  
+      27      <div class="trends__chips">
+      28        @for (currency of currencyOptions; track currency.code) {
+      29          <app-button
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ No references — safe. Now update the SCSS for the new header grouping.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/features/trends/trends.component.scss)
+  ⎿  Added 17 lines, removed 3 lines
+       3  }
+       4  
+       5  .trends {
+       6 +  &__header {                                                  
+       7 +    display: flex;                                             
+       8 +    flex-wrap: wrap;                                           
+       9 +    align-items: flex-end;                                     
+      10 +    gap: var(--sp-xl);                                         
+      11 +    margin-bottom: var(--sp-lg);                               
+      12 +  }                                                            
+      13 +                                                               
+      14    &__title {
+       7 -    margin: 0 0 var(--sp-lg);                                  
+       8 -    font: var(--text-display-sm);                              
+       9 -    letter-spacing: var(--text-display-sm-letter-spacing);     
+      15 +    margin: 0 var(--sp-xl) 0 0;                                
+      16 +    font: var(--text-body-md-strong);                          
+      17 +    text-transform: uppercase;                                 
+      18 +    letter-spacing: 0.04em;                                    
+      19 +    color: var(--color-mute);                                  
+      20    }
+      21  
+      22    &__section {
+      23      margin-bottom: var(--sp-lg);
+      24 +                                                               
+      25 +    &--inline {                                                
+      26 +      margin-bottom: 0;                                        
+      27 +    }                                                          
+      28    }
+      29  
+      30    &__label {
+
+⏺ Task 6 done. Now update specs (task 7).
+
+  Listed 1 directory (ctrl+o to expand)
+
+⏺ Good, hero-band gone. Now fix home.component.spec.ts and
+  nav-bar.component.spec.ts.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+⏺ Update(src/app/features/home/home.component.spec.ts)
+  ⎿  Added 2 lines, removed 5 lines
+      58      expect(fixture.componentInstance).toBeTruthy();
+      59    });
+      60  
+      61 -  it('should render hero band, converter, rates table, trends, 
+         -and offline indicator', () => {                                
+      61 +  it('should render the converter sidebar, rates table, and tre
+         +nds', () => {                                                  
+      62      fixture.detectChanges();
+      63  
+      64      const compiled = fixture.nativeElement as HTMLElement;
+      65 -    expect(compiled.querySelector('app-hero-band')).toBeTruthy(
+         -);                                                             
+      66 -    expect(compiled.querySelector('app-hero-band app-converter'
+         -)).toBeTruthy();                                               
+      65 +    expect(compiled.querySelector('.home__sidebar app-converter
+         +')).toBeTruthy();                                              
+      66      expect(compiled.querySelector('app-rates-table')).toBeTruth
+          y();
+      67      expect(compiled.querySelector('app-trends')).toBeTruthy();
+      69 -    expect(compiled.querySelector('app-offline-indicator')).toB
+         -eTruthy();                                                     
+      70 -    expect(compiled.textContent).toContain('Currency Exchange D
+         -ashboard');                                                    
+      68    });
+      69  });
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/ui/nav-bar/nav-bar.component.spec.ts)
+  ⎿  Added 8 lines, removed 1 line
+       1 -import { signal } from '@angular/core';                        
+       1 +import { signal, WritableSignal } from '@angular/core';        
+       2  import { ComponentFixture, TestBed } from '@angular/core/testin
+          g';
+       3  import { provideRouter } from '@angular/router';
+       4  
+       5  import { NavBarComponent } from './nav-bar.component';
+       6  import { ThemeService } from '../../core/services/theme.service
+          ';
+       7 +import { RealtimeService, RealtimeStatus } from '../../core/ser
+         +vices/realtime.service';                                       
+       8  
+       9 +class RealtimeServiceStub implements Partial<RealtimeService> {
+      10 +  readonly status: WritableSignal<RealtimeStatus> = signal('liv
+         +e');                                                           
+      11 +  readonly lastUpdated: WritableSignal<number | null> = signal(
+         +null);                                                         
+      12 +}                                                              
+      13 +                                                               
+      14  describe('NavBarComponent', () => {
+      15    let fixture: ComponentFixture<NavBarComponent>;
+      16    let themeService: Pick<ThemeService, 'theme' | 'toggle'>;
+     ...
+      26        providers: [
+      27          provideRouter([]),
+      28          { provide: ThemeService, useValue: themeService },
+      29 +        { provide: RealtimeService, useValue: new RealtimeServi
+         +ceStub() },                                                    
+      30        ],
+      31      }).compileComponents();
+      32  
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/app.component.spec.ts)
+  ⎿  Added 10 lines, removed 1 line
+      1 +import { signal } from '@angular/core';                         
+      2  import { TestBed } from '@angular/core/testing';
+      3  import { provideRouter } from '@angular/router';
+      4  
+     ...
+      12        imports: [App],
+      13        providers: [
+      14          provideRouter(routes),
+      14 -        { provide: RealtimeService, useValue: { start: () => un
+         -defined, stop: () => undefined } },                            
+      15 +        {                                                      
+      16 +          provide: RealtimeService,                            
+      17 +          useValue: {                                          
+      18 +            start: () => undefined,                            
+      19 +            stop: () => undefined,                             
+      20 +            status: signal('live'),                            
+      21 +            lastUpdated: signal(null),                         
+      22 +          },                                                   
+      23 +        },                                                     
+      24        ],
+      25      }).compileComponents();
+      26    });
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Both handled. Task 7 done — moving to verification.
+
+  Searched for 1 pattern, ran 1 shell command (ctrl+o to expand)
+
+⏺ Build passes. Now unit tests.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 173 tests pass. Now visually check via dev server + Playwright.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Server up. Screenshot it.
+
+⏺ Skill(playwright-cli)
+  ⎿  Successfully loaded skill · 3 tools allowed
+
+  Searched for 1 pattern, read 2 files, ran 6 shell commands (ctrl+o to expand)
+
+⏺ Dark mode works cleanly. Now check scroll (sticky toolbar + sticky
+  sidebar/search) and trends page, plus offline "Not live" badge.
+
+  Searched for 1 pattern, read 1 file, ran 20 shell commands (ctrl+o to expand)
+⏺ Found root cause: app-nav-bar host element wraps header.nav-bar with zero
+  extra height, giving sticky nothing to "stick" against. Verifying fix before
+  editing.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Confirmed. Applying the fix to nav-bar.component.scss.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/ui/nav-bar/nav-bar.component.scss)
+  ⎿  Added 10 lines, removed 1 line
+       1 -.nav-bar {                                                     
+       1 +// Sticky is applied on :host, not .nav-bar: app-nav-bar (the h
+         +ost element)                                                   
+       2 +// shrink-wraps to exactly the header's height with no ancestor
+         + slack, which                                                  
+       3 +// gives position:sticky on the header itself zero room to stic
+         +k. Hosting it                                                  
+       4 +// one level up — where the containing block is .app-shell, tal
+         +l enough to                                                    
+       5 +// hold the rest of the page — gives sticky the room it needs. 
+       6 +:host {                                                        
+       7 +  display: block;                                              
+       8    position: sticky;
+       9    top: 0;
+      10    z-index: 100;
+      11 +}                                                              
+      12 +                                                               
+      13 +.nav-bar {                                                     
+      14    display: flex;
+      15    align-items: center;
+      16    gap: var(--sp-xl);
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Toolbar now stays pinned (top:0) after scrolling. Screenshot confirmation:
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Now check the Trends page and simulate offline mode for the "Not live" banner.
+
+  Searched for 1 pattern, read 2 files, ran 9 shell commands (ctrl+o to expand)
+
+⏺ Confirming with Cypress e2e too, given tight selector coupling.
+
+  Searched for 1 pattern, read 1 file, ran 7 shell commands (ctrl+o to expand)
+
+⏺ Confirmed: 3 failures are pre-existing (unrelated to my changes). smoke.cy.js
+  is the one regression — fixing it now.
+
+  Ran 1 shell command (ctrl+o to expand)
+⏺ My changes restored. Now fix smoke.cy.js.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(cypress/e2e/smoke.cy.js)
+  ⎿  Added 2 lines, removed 1 line
+      1  describe('Smoke', () => {
+      2    it('loads the home page', () => {
+      3      cy.visit('/');
+      4 -    cy.contains('Currency Exchange Dashboard');                 
+      4 +    cy.contains('CurrencyDashboard');                           
+      5 +    cy.get('.rates-table__table').should('exist');              
+      6    });
+      7  });
+
+⏺ Update(cypress/e2e/smoke.cy.js)
+  ⎿  Added 1 line, removed 1 line
+      2    it('loads the home page', () => {
+      3      cy.visit('/');
+      4      cy.contains('CurrencyDashboard');
+      5 -    cy.get('.rates-table__table').should('exist');              
+      5 +    cy.get('.home__sidebar app-converter').should('exist');     
+      6    });
+      7  });
+
+⏺ Rebuild and rerun full e2e to confirm only the pre-existing failures remain.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Back to baseline: same 3 pre-existing failures (converter/rates/trends — env
+  injection issue with the static prod server, not caused by my changes),
+  smoke.cy.js now passes. Re-running unit tests once more since I touched
+  nav-bar.component.scss after the last run.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ All 173 unit tests still pass, build succeeds. Cleaning up dev artifacts and
+  wrapping up.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Re-skin done, all 8 tasks complete. Summary:
+
+  Toolbar — nav-bar.component now single row: logo mark, nav links, live/offline
+  badge + "Not live" chip, last-updated timestamp, theme toggle. Fixed a real
+  sticky-positioning bug along the way (host element wrapped the sticky header
+  with zero extra height, so it never actually stuck — found it, fixed with
+  :host { position: sticky }).
+
+  Converter — vertical compact widget, sticky in a left sidebar column, result
+  font shrunk from 40px display to 24px.
+
+  Rates table — moved to top of content, sticky search/base/toggle bar, new
+  Change column with green/red day-over-day deltas (reads yesterday's cached
+  history from IndexedDB, no extra network call), always-visible sort-affordance
+  glyph on sortable headers.
+
+  Trends — base + aggregation toggle grouped in one header row, currency chips
+  below, chart prominent, title de-emphasized from marketing display type to a
+  small caps label.
+
+  Offline — added explicit "NOT LIVE" chip next to the status badge whenever not
+  live/polling.
+
+  Removed — hero-band component entirely (display-mega typography, full-bleed
+  sage band, marketing headline).
+
+  Verified: build clean, all 173 unit tests pass (updated home/nav-bar/app specs
+  for the new structure), visually checked light+dark+scroll+offline states via
+  Playwright screenshots. Ran Cypress e2e twice (before/after) to confirm
+  converter/rates/trends failures are pre-existing environment issues unrelated
+  to this change — only regression was smoke.cy.js checking for the deleted hero
+  text, now fixed and passing.
+
+✻ Baked for 19m 8s
+
+※ recap: Re-skinned the dashboard from marketing-hero to a compact data-tool layout — done and verified. All tests pass and build is clean; just waiting on your review of the changes. (disable recaps in /config)
+
+❯ Polish the dashboard's visual finish without changing layout, structure, or   
+  functionality — this is a depth/color/hierarchy pass, not a redesign. Keep    
+  all DESIGN.md tokens (colors, radii, spacing, typography); apply them with    
+  more intention.                                                               
+                                                                                
+  1. Elevation: give the convert-card and table container a soft box-shadow     
+  (Level 2 floating card per DESIGN.md) instead of flat 1px borders. Cards      
+  should visually "lift" off the page background.                               
+                                                                                
+  2. Hero number: the converter result ("0.87 EUR") is the single most          
+  important number on the page — make it read that way. Increase size           
+  significantly (2x+), color it with the primary/positive-deep green accent,    
+  keep everything else around it visually quieter by comparison.                
+                                                                                
+  3. Color distribution: right now color only appears in the Change column and  
+  two toggle pills — rest of the page is black-on-white. Add deliberate accent  
+  moments: a colored icon or badge near the live-status indicator, a subtle     
+  green-tinted left-accent-bar or background tint on hover/selected table rows, 
+  color-weight on primary interactive elements (Swap button, active nav link).  
+                                                                                
+  4. Table header / sort controls: the "Currency"/"Rate"/"Base" column headers  
+  currently render as plain bordered boxes (look like disabled/unstyled         
+  buttons). Redesign as proper sortable header controls: bold caption-style     
+  text, bottom border/divider instead of individual boxes, clear sort-direction 
+  indicator (arrow/chevron) that appears on hover/active state, subtle hover    
+  feedback (background tint or underline) so they read as interactive, not      
+  static labels.                                                                
+                                                                                
+  5. Visual hierarchy pass: ensure the page has one clear focal point per       
+  section (convert card result number; table's most-recently-changed or         
+  searched row; live-status badge) rather than uniform-weight borders and text  
+  everywhere. Use font-weight, color saturation, and shadow — not just borders  
+  — to establish what matters most at a glance.                                 
+                                                                                
+  6. Balance density: reduce dead space inside the convert card (top-left area, 
+  spacing around Swap) so its visual density roughly matches the table beside   
+  it — currently the two panels feel mismatched in weight/density.              
+                                                                                
+  Goal: same information, same layout — but reads as a finished, confident      
+  product a user would trust with real money, not a wireframe/prototype.        
+
+⏺ Check DESIGN.md for shadow/elevation tokens before touching CSS.
+
+  Searched for 1 pattern, read 3 files (ctrl+o to expand)
+
+⏺ Update(src/styles/_tokens.scss)
+  ⎿  Added 3 lines
+      45    --sp-2xl: 32px;
+      46    --sp-3xl: 48px;
+      47  
+      48 +  // Elevation                                                 
+      49 +  --shadow-card: 0 1px 2px rgba(14, 15, 12, 0.05), 0 12px 28px 
+         +-8px rgba(14, 15, 12, 0.16);                                   
+      50 +                                                               
+      51    // Radius
+      52    --rd-sm: 8px;
+      53    --rd-md: 12px;
+
+⏺ Update(src/styles/_theme.scss)
+  ⎿  Added 1 line
+      21    --color-negative-bg: #320707;
+      22    --color-accent-orange: #ffc091;
+      23    --color-accent-cyan: #38c8ff;
+      24 +  --shadow-card: 0 1px 2px rgba(14, 15, 12, 0.05), 0 12px 28px 
+         +-8px rgba(14, 15, 12, 0.16);                                   
+      25  }
+      26  
+      27  [data-theme="dark"] {
+
+⏺ Update(src/styles/_theme.scss)
+  ⎿  Added 1 line
+      47    --color-negative-bg: #320707;
+      48    --color-accent-orange: #ffc091;
+      49    --color-accent-cyan: #38c8ff;
+      50 +  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 28px -8px
+         + rgba(0, 0, 0, 0.55);                                          
+      51  }
+
+⏺ Now card.component.scss — shadow + hairline border replacing the flat ink
+  border.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/ui/card/card.component.scss)
+  ⎿  Added 2 lines
+       6    &--content {
+       7      background-color: var(--color-canvas);
+       8      color: var(--color-ink);
+       9 +    border: 1px solid var(--color-canvas-soft);                
+      10 +    box-shadow: var(--shadow-card);                            
+      11    }
+      12  
+      13    &--feature-sage {
+
+⏺ Update(src/app/ui/card/card.component.scss)
+  ⎿  Added 2 lines, removed 1 line
+      28    &--currency-converter {
+      29      background-color: var(--color-canvas);
+      30      color: var(--color-ink);
+      31 -    border: 1px solid var(--color-ink);                        
+      31 +    border: 1px solid var(--color-canvas-soft);                
+      32 +    box-shadow: var(--shadow-card);                            
+      33    }
+      34  }
+⏺ Now the converter: hero number, density, swap accent.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Update(src/app/features/converter/converter.component.html)
+  ⎿  Added 1 line, removed 3 lines
+      58        @if (value === null) {
+      59          <span class="converter__value">—</span>
+      60        } @else {
+      61 -        <span class="converter__value">                        
+      62 -          {{ value | number: '1.2-2' }} {{ to() }}             
+      63 -        </span>                                                
+      61 +        <span class="converter__value">{{ value | number: '1.2-
+         +2' }}</span> <span class="converter__code">{{ to() }}</span>   
+      62        }
+      63      </div>
+      64    </div>
+
+⏺ Now the SCSS: hero number, density, swap accent.
+
+⏺ Write(src/app/features/converter/converter.component.scss)
+  ⎿  Added 22 lines, removed 4 lines
+       1  .converter {
+       2    display: flex;
+       3    flex-direction: column;
+       4 -  gap: var(--sp-md);                                           
+       4 +  gap: var(--sp-sm);                                           
+       5  
+       6    &__title {
+       7 -    margin: 0;                                                 
+       7 +    margin: 0 0 var(--sp-xs);                                  
+       8      font: var(--text-body-sm-strong);
+       9      text-transform: uppercase;
+      10      letter-spacing: 0.04em;
+     ...
+      35  
+      36    &__swap-row {
+      37      display: flex;
+      38 -    justify-content: center;                                   
+      38 +    justify-content: flex-start;                               
+      39 +    margin: calc(-1 * var(--sp-xxs)) 0;                        
+      40    }
+      41  
+      42    &__swap {
+      43      flex: 0 0 auto;
+      44 +                                                               
+      45 +    ::ng-deep .btn {                                           
+      46 +      padding: var(--sp-xs) var(--sp-lg);                      
+      47 +      background-color: transparent;                           
+      48 +      border: 1px solid var(--color-positive-deep);            
+      49 +      color: var(--color-positive-deep);                       
+      50 +    }                                                          
+      51 +                                                               
+      52 +    ::ng-deep .btn:hover {                                     
+      53 +      background-color: var(--color-primary-pale);             
+      54 +    }                                                          
+      55    }
+      56  
+      57    &__result {
+     ...
+      61    }
+      62  
+      63    &__value {
+      52 -    font: var(--text-display-xs);                              
+      64 +    font: var(--text-display-md);                              
+      65 +    color: var(--color-positive-deep);                         
+      66    }
+      67 +                                                               
+      68 +  &__code {                                                    
+      69 +    font: var(--text-body-md-strong);                          
+      70 +    color: var(--color-mute);                                  
+      71 +  }                                                            
+      72  }
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/ui/card/card.component.scss)
+  ⎿  Added 1 line
+      28    &--currency-converter {
+      29      background-color: var(--color-canvas);
+      30      color: var(--color-ink);
+      31 +    padding: var(--sp-lg);                                     
+      32      border: 1px solid var(--color-canvas-soft);
+      33      box-shadow: var(--shadow-card);
+      34    }
+
+⏺ Now the rates-table: sort header redesign + row hover accent.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Write(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 63 lines, removed 13 lines
+       59      td {
+       60        padding: var(--sp-md) var(--sp-lg);
+       61        text-align: left;
+       62 -      border-bottom: 1px solid var(--color-ink);              
+       62      }
+       63  
+       64      th {
+       66 -      font: var(--text-body-sm-strong);                       
+       65 +      padding-bottom: var(--sp-sm);                           
+       66 +      font: var(--text-caption);                              
+       67 +      font-weight: 700;                                       
+       68 +      text-transform: uppercase;                              
+       69 +      letter-spacing: 0.04em;                                 
+       70 +      color: var(--color-mute);                               
+       71        white-space: nowrap;
+       72 +      border-bottom: 2px solid var(--color-ink);              
+       73      }
+       74 +                                                              
+       75 +    td {                                                      
+       76 +      border-bottom: 1px solid var(--color-canvas-soft);      
+       77 +    }                                                         
+       78    }
+       79  
+       80    &__row {
+       81      cursor: pointer;
+       73 -    transition: background-color 0.2s ease;                   
+       82 +    transition: background-color 0.15s ease;                  
+       83  
+       84 +    td:first-child {                                          
+       85 +      border-left: 3px solid transparent;                     
+       86 +      transition: border-left-color 0.15s ease;               
+       87 +    }                                                         
+       88 +                                                              
+       89      &:hover,
+       90      &:focus {
+       77 -      background-color: var(--color-canvas-soft);             
+       91 +      background-color: var(--color-primary-pale);            
+       92      }
+       93  
+       94 +    &:hover td:first-child,                                   
+       95 +    &:focus td:first-child {                                  
+       96 +      border-left-color: var(--color-primary);                
+       97 +    }                                                         
+       98 +                                                              
+       99      &:focus {
+      100        outline: 2px solid var(--color-primary);
+      101        outline-offset: -2px;
+     ...
+      150      }
+      151    }
+      152  
+      134 -  // Sort header affordance: the directive renders a button + 
+          -indicator span                                                
+      135 -  // inside each [appSortHeader] th. Show a faint up/down glyp
+          -h on inactive                                                 
+      136 -  // columns so sortability is discoverable without hovering. 
+      153 +  // Sort header controls: the directive renders a button + in
+          +dicator span                                                  
+      154 +  // inside each [appSortHeader] th, appended via Renderer2 — 
+          +::ng-deep                                                     
+      155 +  // ensures these rules reach past any encapsulation boundary
+          + regardless of                                                
+      156 +  // which component's renderer created them.                 
+      157    ::ng-deep {
+      158      .sort-header__button {
+      159        display: inline-flex;
+      160        align-items: center;
+      161        gap: var(--sp-xs);
+      162 +      margin: calc(-1 * var(--sp-xxs)) calc(-1 * var(--sp-sm))
+          +;                                                             
+      163        border: 0;
+      164 +      border-radius: var(--rd-sm);                            
+      165        background: none;
+      144 -      padding: 0;                                             
+      166 +      padding: var(--sp-xxs) var(--sp-sm);                    
+      167        font: inherit;
+      168 +      font-weight: inherit;                                   
+      169        color: inherit;
+      170        cursor: pointer;
+      171 +      transition: background-color 0.15s ease, color 0.15s eas
+          +e;                                                            
+      172      }
+      173  
+      174 +    .sort-header__button:hover {                              
+      175 +      background-color: var(--color-canvas-soft);             
+      176 +      color: var(--color-ink);                                
+      177 +    }                                                         
+      178 +                                                              
+      179      .sort-header__indicator {
+      180        display: inline-flex;
+      181        min-width: 0.75rem;
+      153 -      font-size: 0.7em;                                       
+      182 +      font-size: 0.85em;                                      
+      183 +    }                                                         
+      184  
+      155 -      &:empty::after {                                        
+      156 -        content: '⇅';                                         
+      157 -        opacity: 0.35;                                        
+      158 -      }                                                       
+      185 +    .sort-header__indicator:empty::after {                    
+      186 +      content: '⌄';                                           
+      187 +      opacity: 0.25;                                          
+      188 +      transition: opacity 0.15s ease;                         
+      189      }
+      190 +                                                              
+      191 +    .sort-header__button:hover .sort-header__indicator:empty::
+          +after {                                                       
+      192 +      opacity: 0.7;                                           
+      193 +    }                                                         
+      194 +                                                              
+      195 +    th[aria-sort='ascending'],                                
+      196 +    th[aria-sort='descending'] {                              
+      197 +      color: var(--color-ink);                                
+      198 +    }                                                         
+      199 +                                                              
+      200 +    th[aria-sort='ascending'] .sort-header__button,           
+      201 +    th[aria-sort='descending'] .sort-header__button {         
+      202 +      font-weight: 700;                                       
+      203 +    }                                                         
+      204 +                                                              
+      205 +    th[aria-sort='ascending'] .sort-header__indicator,        
+      206 +    th[aria-sort='descending'] .sort-header__indicator {      
+      207 +      color: var(--color-positive-deep);                      
+      208 +      opacity: 1;                                             
+      209 +    }                                                         
+      210    }
+      211  }
+
+⏺ Now the nav-bar active link accent and offline-indicator status dot.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(src/app/ui/nav-bar/nav-bar.component.scss)
+  ⎿  Added 8 lines, removed 2 lines
+      50    }
+      51  
+      52    &__link {
+      53 +    padding-bottom: var(--sp-xxs);                             
+      54 +    border-bottom: 2px solid transparent;                      
+      55      font: var(--text-body-sm-strong);
+      56      color: var(--color-mute);
+      57      text-decoration: none;
+      58 +    transition: color 0.15s ease, border-color 0.15s ease;     
+      59  
+      57 -    &:hover,                                                   
+      60 +    &:hover {                                                  
+      61 +      color: var(--color-ink);                                 
+      62 +    }                                                          
+      63 +                                                               
+      64      &--active {
+      65        color: var(--color-ink);
+      60 -      text-decoration: underline;                              
+      66 +      border-bottom-color: var(--color-primary);               
+      67      }
+      68    }
+      69  
+
+⏺ Now the offline-indicator status dot.
+
+  Read 3 files (ctrl+o to expand)
+
+⏺ Update(src/app/features/offline-indicator/offline-indicator.component.html)
+  ⎿  Added 6 lines, removed 1 line
+      1 -<app-badge data-testid="offline-badge" [variant]="variant()">{{ 
+        -label() }}</app-badge>                                          
+      1 +<app-badge data-testid="offline-badge" [variant]="variant()"><sp
+        +an                                                              
+      2 +    class="offline-indicator__dot"                              
+      3 +    [class.offline-indicator__dot--positive]="variant() === 'pos
+        +itive'"                                                         
+      4 +    [class.offline-indicator__dot--negative]="variant() === 'neg
+        +ative'"                                                         
+      5 +    aria-hidden="true"                                          
+      6 +  ></span>{{ label() }}</app-badge>                             
+      7  @if (!isLive()) {
+      8    <span class="offline-indicator__not-live" data-testid="not-liv
+         e-flag">Not live</span>
+      9  }
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Good — no stray whitespace between the dot span and the label text. Now add
+  the dot styles.
+
+⏺ Update(src/app/features/offline-indicator/offline-indicator.component.scss)
+  ⎿  Added 17 lines
+       4    gap: var(--sp-sm);
+       5  }
+       6  
+       7 +.offline-indicator__dot {                                      
+       8 +  display: inline-block;                                       
+       9 +  width: 0.5rem;                                               
+      10 +  height: 0.5rem;                                              
+      11 +  margin-right: var(--sp-xs);                                  
+      12 +  border-radius: var(--rd-full);                               
+      13 +  vertical-align: middle;                                      
+      14 +                                                               
+      15 +  &--positive {                                                
+      16 +    background-color: var(--color-positive);                   
+      17 +  }                                                            
+      18 +                                                               
+      19 +  &--negative {                                                
+      20 +    background-color: var(--color-negative);                   
+      21 +  }                                                            
+      22 +}                                                              
+      23 +                                                               
+      24  .offline-indicator__not-live {
+      25    display: inline-flex;
+      26    align-items: center;
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ All 173 pass, build clean. Now visual check via dev server.
+
+  Searched for 1 pattern, read 1 file, ran 4 shell commands (ctrl+o to expand)
+⏺ Found it — .rates-table is never applied as an actual class in the DOM (BEM
+  root, only __ children exist), so my ::ng-deep rules were scoped under a
+  selector that matches nothing. Fixing with :host.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Moving the ::ng-deep block out to a top-level :host rule.
+
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 53 lines, removed 50 lines
+      150      }
+      151    }
+      152  
+      153 -  // Sort header controls: the directive renders a button + in
+          -dicator span                                                  
+      154 -  // inside each [appSortHeader] th, appended via Renderer2 — 
+          -::ng-deep                                                     
+      155 -  // ensures these rules reach past any encapsulation boundary
+          - regardless of                                                
+      156 -  // which component's renderer created them.                 
+      157 -  ::ng-deep {                                                 
+      158 -    .sort-header__button {                                    
+      159 -      display: inline-flex;                                   
+      160 -      align-items: center;                                    
+      161 -      gap: var(--sp-xs);                                      
+      162 -      margin: calc(-1 * var(--sp-xxs)) calc(-1 * var(--sp-sm))
+          -;                                                             
+      163 -      border: 0;                                              
+      164 -      border-radius: var(--rd-sm);                            
+      165 -      background: none;                                       
+      166 -      padding: var(--sp-xxs) var(--sp-sm);                    
+      167 -      font: inherit;                                          
+      168 -      font-weight: inherit;                                   
+      169 -      color: inherit;                                         
+      170 -      cursor: pointer;                                        
+      171 -      transition: background-color 0.15s ease, color 0.15s eas
+          -e;                                                            
+      172 -    }                                                         
+      153 +}                                                             
+      154  
+      174 -    .sort-header__button:hover {                              
+      175 -      background-color: var(--color-canvas-soft);             
+      176 -      color: var(--color-ink);                                
+      177 -    }                                                         
+      155 +// Sort header controls: the directive renders a button + indi
+          +cator span                                                    
+      156 +// inside each [appSortHeader] th, appended via Renderer2. `.r
+          +ates-table` is a                                              
+      157 +// bare BEM root that is never applied to an actual element in
+          + this                                                         
+      158 +// component's template (only its `__x` children are) — nestin
+          +g ::ng-deep                                                   
+      159 +// under it compiles to a descendant selector that can never m
+          +atch anything.                                                
+      160 +// Anchor on :host instead, which always resolves to <app-rate
+          +s-table>.                                                     
+      161 +:host ::ng-deep {                                             
+      162 +  .sort-header__button {                                      
+      163 +    display: inline-flex;                                     
+      164 +    align-items: center;                                      
+      165 +    gap: var(--sp-xs);                                        
+      166 +    margin: calc(-1 * var(--sp-xxs)) calc(-1 * var(--sp-sm)); 
+      167 +    border: 0;                                                
+      168 +    border-radius: var(--rd-sm);                              
+      169 +    background: none;                                         
+      170 +    padding: var(--sp-xxs) var(--sp-sm);                      
+      171 +    font: inherit;                                            
+      172 +    font-weight: inherit;                                     
+      173 +    color: inherit;                                           
+      174 +    cursor: pointer;                                          
+      175 +    transition: background-color 0.15s ease, color 0.15s ease;
+      176 +  }                                                           
+      177  
+      179 -    .sort-header__indicator {                                 
+      180 -      display: inline-flex;                                   
+      181 -      min-width: 0.75rem;                                     
+      182 -      font-size: 0.85em;                                      
+      183 -    }                                                         
+      178 +  .sort-header__button:hover {                                
+      179 +    background-color: var(--color-canvas-soft);               
+      180 +    color: var(--color-ink);                                  
+      181 +  }                                                           
+      182  
+      185 -    .sort-header__indicator:empty::after {                    
+      186 -      content: '⌄';                                           
+      187 -      opacity: 0.25;                                          
+      188 -      transition: opacity 0.15s ease;                         
+      189 -    }                                                         
+      183 +  .sort-header__indicator {                                   
+      184 +    display: inline-flex;                                     
+      185 +    min-width: 0.75rem;                                       
+      186 +    font-size: 0.85em;                                        
+      187 +  }                                                           
+      188  
+      191 -    .sort-header__button:hover .sort-header__indicator:empty::
+          -after {                                                       
+      192 -      opacity: 0.7;                                           
+      193 -    }                                                         
+      189 +  .sort-header__indicator:empty::after {                      
+      190 +    content: '⌄';                                             
+      191 +    opacity: 0.25;                                            
+      192 +    transition: opacity 0.15s ease;                           
+      193 +  }                                                           
+      194  
+      195 -    th[aria-sort='ascending'],                                
+      196 -    th[aria-sort='descending'] {                              
+      197 -      color: var(--color-ink);                                
+      198 -    }                                                         
+      195 +  .sort-header__button:hover .sort-header__indicator:empty::af
+          +ter {                                                         
+      196 +    opacity: 0.7;                                             
+      197 +  }                                                           
+      198  
+      200 -    th[aria-sort='ascending'] .sort-header__button,           
+      201 -    th[aria-sort='descending'] .sort-header__button {         
+      202 -      font-weight: 700;                                       
+      203 -    }                                                         
+      199 +  th[aria-sort='ascending'],                                  
+      200 +  th[aria-sort='descending'] {                                
+      201 +    color: var(--color-ink);                                  
+      202 +  }                                                           
+      203  
+      205 -    th[aria-sort='ascending'] .sort-header__indicator,        
+      206 -    th[aria-sort='descending'] .sort-header__indicator {      
+      207 -      color: var(--color-positive-deep);                      
+      208 -      opacity: 1;                                             
+      209 -    }                                                         
+      204 +  th[aria-sort='ascending'] .sort-header__button,             
+      205 +  th[aria-sort='descending'] .sort-header__button {           
+      206 +    font-weight: 700;                                         
+      207    }
+      208 +                                                              
+      209 +  th[aria-sort='ascending'] .sort-header__indicator,          
+      210 +  th[aria-sort='descending'] .sort-header__indicator {        
+      211 +    color: var(--color-positive-deep);                        
+      212 +    opacity: 1;                                               
+      213 +  }                                                           
+      214  }
+
+⏺ Update(src/app/features/rates-table/rates-table.component.scss)
+  ⎿  Added 2 lines
+      164      align-items: center;
+      165      gap: var(--sp-xs);
+      166      margin: calc(-1 * var(--sp-xxs)) calc(-1 * var(--sp-sm));
+      167 +    appearance: none;                                         
+      168 +    -webkit-appearance: none;                                 
+      169      border: 0;
+      170      border-radius: var(--rd-sm);
+      171      background: none;
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Dev server picks up changes via HMR/watch; reload and re-screenshot.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ Fixed — border 0, transparent bg, appearance none. Screenshot to confirm
+  visually.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Headers now clean. Testing active sort state and row hover.
+
+  Read 1 file, ran 2 shell commands (ctrl+o to expand)
+
+⏺ Sort + hover work perfectly. Checking dark theme.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Looks cohesive in both themes. Quick check of Trends/Converter pages, then
+  final test pass.
+
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Trends card shadow visible too, consistent with the polish pass. Now run full
+  unit test + build to confirm nothing regressed.
+
+  Ran 2 shell commands (ctrl+o to expand)
+
+⏺ 173 tests pass, build clean. Polish pass done:
+
+  1. Elevation — added --shadow-card token (light/dark variants in tokens/theme
+  scss), applied to content and currency-converter card variants with a hairline
+  canvas-soft border replacing the flat ink border.
+  2. Hero number — converter result now --text-display-md (40px/900) in
+  --color-positive-deep, currency code split into a quieter muted sub-span.
+  3. Color distribution — status dot (green/red) on the live badge, colored
+  underline on active nav link, green-accented Swap button, green
+  left-accent-bar + tint on table row hover.
+  4. Sort headers — rewrote as proper controls: uppercase caption labels, 2px
+  bottom divider, chevron indicator that dims/brightens on hover, bold + green
+  arrow on active column. Found and fixed a real bug along the way — the CSS was
+  nested under .rates-table (a BEM root class never actually applied to any
+  element), so the reset rules matched nothing and headers were rendering as raw
+  unstyled <button> elements; moved to :host so it hits the actual DOM.
+  5. Hierarchy — row divider lightened to canvas-soft while the header divider
+  stays dark, so the header reads as a distinct band rather than uniform grid
+  lines.
+  6. Density — tightened converter card padding/gaps, left-aligned and shrunk
+  the Swap button, closer to the table's density.
+
+  Verified in both themes via live screenshots, plus interaction states (sort
+  click, row hover).
+
+✻ Cooked for 8m 2s
+
+※ recap: Re-skinned the currency dashboard from marketing-hero to dashboard-first layout, then did a visual polish pass (shadows, hero number, color accents, sort headers). Both done and verified — tests pass, build clean. No pending action; awaiting your next request. (disable recaps in /config)
+
+❯ /caveman:caveman-commit                                                       
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Nothing staged. Not gonna add/commit without ask — just draft message here.
+
+  Subject: refactor: re-skin to dashboard-first layout with visual polish
+
+  Body:
+  Marketing-hero landing page read wrong for a tool used daily — swap hero
+  band/mega type for compact sticky toolbar, sticky converter sidebar, and rate
+  table given primary real estate. Second pass adds elevation, color-weighted
+  interactive states, and a proper sort-header control (fixing a dead CSS
+  selector that left them unstyled) so it reads finished, not wireframe.
+
+  Say the word and I'll stage + commit.
+
+✻ Crunched for 8s
+
+❯ stage and commit it                                                           
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Untracked PDF/PNGs left out (git add -u only stages tracked files) — good,
+  those weren't part of this work.
+
+  Committed 730be1e (ctrl+o to expand)
+
+⏺ Committed: 730be1e. 27 files, +475/-277. Working tree clean except the
+  untracked PDF/PNGs.
+✻ Cogitated for 13s
+
+❯ push it                                                                       
+
+  Pushed to feature/dashboard (ctrl+o to expand)
+
+⏺ Pushed. feature/dashboard on origin now at 730be1e.
+
+✻ Baked for 9s

@@ -2,8 +2,9 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app.component';
 import { ENV_TOKEN, EnvironmentConfig } from './app/core/tokens/env.token';
+import { environment } from './environments/environment';
 
-const providers = [...appConfig.providers];
+const providers = [...appConfig.providers, { provide: ENV_TOKEN, useValue: environment as EnvironmentConfig }];
 const cypressEnv = (window as unknown as { __CYPRESS_ENV__?: EnvironmentConfig }).__CYPRESS_ENV__;
 if (cypressEnv) {
   providers.push({ provide: ENV_TOKEN, useValue: cypressEnv as EnvironmentConfig });
