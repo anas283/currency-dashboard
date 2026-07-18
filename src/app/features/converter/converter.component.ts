@@ -52,6 +52,7 @@ export class ConverterComponent {
       const amount = this.amount();
       const from = this.from();
       const to = this.to();
+      this.ratesService.snapshot();
       this.ratesService.convert(amount, from, to).then((value) => {
         if (amount === this.amount() && from === this.from() && to === this.to()) {
           this.resultValue.set(value);
